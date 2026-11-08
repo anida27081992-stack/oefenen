@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="nl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Decimalen afronden</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: één smalle kolom, één stap per scherm. Blauw = theorie en vast cijfer, groen = voorbeeld, oranje = het cijfer achter de streep. */
+:root{
+  --bg:#eef5ff; --surface:#ffffff; --ink:#10253f; --muted:#4a5f7a; --line:#c9d9ee;
+  --blue:#1c6df2; --blue-d:#1450b8; --on-blue:#ffffff; --blue-soft:#dcebff;
+  --teal:#0aa384; --teal-d:#067a63; --on-teal:#ffffff; --teal-soft:#d3f3ea;
+  --hot:#d9480f; --hot-soft:#ffe6da;
+  --sun:#ffc531; --bad:#c2381f; --bad-soft:#ffe2dc;
+  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+    --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+    --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+    --hot:#ff9a6b; --hot-soft:#4a2616;
+    --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+  --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+  --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+  --hot:#ff9a6b; --hot-soft:#4a2616;
+  --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.55;
+  padding-block:16px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:clamp(1.6rem,5vw,2.1rem)}
+h3{font-size:1.5rem}
+p{margin:0}
+b{font-weight:800}
+.muted{color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.brand{font:700 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.95rem;font-weight:600}
+.tools label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.tools input{width:20px;height:20px;accent-color:var(--blue)}
+.pts{background:var(--sun);color:#3d2d00;border-radius:99px;padding:2px 14px;font-weight:800}
+.prog{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+#bar{display:block;height:100%;width:0;background:var(--teal);transition:width .4s}
+.stepname{font-size:.95rem;font-weight:600;color:var(--muted)}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.center{align-items:center;text-align:center}
+#stage{outline:none}
+#stage>*{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.theory,.example{position:relative;border:2px solid;border-radius:6px 14px 14px 14px;padding:46px 18px 18px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;width:100%}
+.theory{background:var(--blue-soft);border-color:var(--blue)}
+.example{background:var(--teal-soft);border-color:var(--teal-d);align-items:stretch}
+.tab{position:absolute;top:-2px;left:-2px;padding:3px 16px;border-radius:6px 0 12px 0;font:700 .95rem var(--font-display);letter-spacing:.05em;background:var(--blue);color:var(--on-blue)}
+.example .tab{background:var(--teal-d);color:var(--on-teal)}
+.theory p{text-align:left}
+.theory b{color:var(--blue)}
+
+.listen{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--blue);background:var(--surface);color:var(--blue);border-radius:99px;padding:6px 16px 6px 12px;font-weight:800;font-size:.95rem;cursor:pointer}
+.listen svg{width:22px;height:22px;fill:currentColor}
+.listen.playing{background:var(--blue);color:var(--on-blue)}
+.nosynth .listen{display:none}
+
+.go{border:0;background:var(--blue);color:var(--on-blue);border-radius:12px;padding:12px 26px;font:700 1.25rem var(--font-display);cursor:pointer;box-shadow:0 4px 0 var(--blue-d)}
+.go:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--blue-d)}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font-weight:700;color:var(--muted)}
+
+/* Getal met streep */
+.num{display:inline-flex;align-items:center;white-space:nowrap;font:700 clamp(2rem,9vw,3.1rem)/1.1 var(--font-display);letter-spacing:.02em}
+.num .k,.num .eur{color:var(--blue)}
+.num .cut{align-self:stretch;width:4px;margin:2px 7px;background:var(--ink);border-radius:2px}
+.num .nx{color:var(--hot)}
+.num .r{color:var(--muted)}
+.numbox{display:flex;justify-content:center;padding:10px 0}
+
+/* Cijferbalk 0-9 */
+.ladder{display:flex;width:100%;max-width:560px;border-radius:12px;overflow:hidden;border:2px solid var(--line);background:var(--surface)}
+.ladder>div{flex:1;padding:8px 6px;text-align:center;min-width:0}
+.ladder .lo{background:var(--hot-soft)}
+.ladder .hi{background:var(--blue-soft)}
+.ladder .dg{display:flex;justify-content:center;gap:8px;font:800 1.6rem/1.2 var(--font-display)}
+.ladder .lo .dg{color:var(--hot)}
+.ladder .hi .dg{color:var(--blue)}
+.ladder small{display:block;font-weight:700;font-size:.85rem;line-height:1.3;margin-top:2px;color:var(--ink)}
+
+.opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:58px;padding:10px 14px;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:12px;box-shadow:0 3px 0 var(--line);cursor:pointer;font-weight:700;min-width:0}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{cursor:default}
+.opt:disabled:not(.ok):not(.no){opacity:.55}
+.opt.ok{border-color:var(--teal-d);background:var(--teal-soft);box-shadow:0 3px 0 var(--teal-d)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
+.opt[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 3px 0 var(--blue)}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opts{display:grid;gap:10px}
+.opts.words{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opts.money{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts.money .opt{font:700 1.3rem var(--font-display);min-height:64px}
+.opts.tf{grid-template-columns:1fr 1fr}
+.opts.tf .opt{font:700 1.3rem var(--font-display);min-height:64px}
+
+.row2{display:flex;gap:10px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 18px;font:700 1.15rem var(--font-display);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.say{background:var(--surface);border:2px dashed var(--line);border-radius:12px;padding:12px 14px;text-align:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;background:var(--surface);border:2px solid var(--line);border-radius:12px;cursor:pointer;text-align:center;font-weight:700;box-shadow:0 3px 0 var(--line)}
+.card.seen{border-color:var(--teal-d)}
+.card.seen::after{content:"\2713";position:absolute;top:4px;right:10px;color:var(--teal-d);font-weight:800}
+.card ol{margin:0;padding-left:1.3em;text-align:left;font-weight:600;font-size:.95rem}
+.card .res{font:700 1.3rem var(--font-display)}
+.card .res b{color:var(--teal-d)}
+
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.dots span{display:inline-block;width:12px;height:12px;margin-left:5px;border-radius:50%;background:var(--line)}
+.dots .d{background:var(--teal)}
+.dots .c{background:var(--blue)}
+.qcard{display:flex;flex-direction:column;gap:14px}
+.qtext{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.q{font:700 1.35rem/1.25 var(--font-display)}
+.fb{min-height:1.5em;font-weight:800}
+.fb.good{color:var(--teal-d)}
+.fb.bad{color:var(--bad)}
+.after{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.expl{background:var(--blue-soft);border-radius:10px;padding:10px 14px}
+
+.kicker{font:700 1rem var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--teal-d)}
+.plan{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:6px}
+.plan li::marker{font-weight:800;color:var(--blue)}
+.plan li{padding-left:6px}
+.plan span{color:var(--muted);font-size:.95rem;margin-left:8px}
+.field{display:flex;flex-direction:column;gap:4px;max-width:340px}
+.field label{font-weight:700}
+input[type=text],select{background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.tank{display:flex;flex-direction:column;gap:14px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 14px;align-items:center;padding:12px;border:2px solid var(--line);border-radius:12px}
+.trow .lab{grid-column:1/-1;font-weight:800;color:var(--blue)}
+.trow .num{font-size:clamp(1.7rem,7vw,2.3rem)}
+.trow input.ok{border-color:var(--teal-d);background:var(--teal-soft)}
+.trow input.bad{border-color:var(--bad);background:var(--bad-soft)}
+.trow .msg{grid-column:1/-1;font-weight:700;min-height:1.4em}
+.trow .msg.good{color:var(--teal-d)}
+.trow .msg.bad{color:var(--bad)}
+@media (max-width:520px){.trow{grid-template-columns:1fr}}
+
+.stars{display:flex;gap:8px}
+.stars svg{width:56px;height:56px;animation:pop .5s backwards}
+.stars svg:nth-child(2){animation-delay:.15s}
+.stars svg:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)}}
+.big{font-size:1.3rem}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header class="top" id="top">
+    <span class="brand">Wiskunde · klas 1</span>
+    <div class="tools">
+      <label for="auto"><input type="checkbox" id="auto"> Lees alles voor</label>
+      <span class="pts">Punten <span id="pts">0</span></span>
+    </div>
+  </header>
+  <div class="prog" role="progressbar" aria-label="Voortgang van de les" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="bar"></span></div>
+  <div class="stepname" id="stepname"></div>
+  <main id="stage" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+var shuffle=function(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a};
+var MAX=28;
+var state={i:0,score:0,name:'',auto:false};
+
+/* ---------- Voorlezen ---------- */
+var synth=('speechSynthesis' in window)?window.speechSynthesis:null;
+var voice=null,active=null,token=0;
+if(!synth)$('#app').classList.add('nosynth');
+function pickVoice(){if(!synth)return;var v=synth.getVoices();voice=v.find(function(x){return /^nl[-_]NL$/i.test(x.lang)})||v.find(function(x){return /^nl/i.test(x.lang)})||null}
+if(synth){pickVoice();if('onvoiceschanged' in synth)synth.onvoiceschanged=pickVoice}
+function clearActive(){if(active){active.classList.remove('playing');active=null}}
+function stopSpeech(){token++;if(synth)synth.cancel();clearActive()}
+/* Getallen worden cijfer voor cijfer voorgelezen: 0,913 wordt "0 komma 9 1 3" */
+function spoken(t){
+  return t.replace(/€\s?/g,'euro ').replace(/(\d+),(\d+)/g,function(m,a,b){return a+' komma '+b.split('').join(' ')});
+}
+function say(text,btn){
+  if(!synth)return;
+  var same=btn&&active===btn;
+  stopSpeech();
+  if(same)return;
+  var my=++token;
+  var u=new SpeechSynthesisUtterance(spoken(text));
+  u.lang='nl-NL';if(voice)u.voice=voice;u.rate=.9;
+  u.onend=u.onerror=function(){if(token===my)clearActive()};
+  if(btn){active=btn;btn.classList.add('playing')}
+  synth.speak(u);
+}
+function maybeAuto(t){if(state.auto)say(t,null)}
+var SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function listenBtn(text,label){return '<button class="listen" type="button" data-say="'+esc(text)+'">'+SPK+'<span>'+(label||'Lees voor')+'</span></button>'}
+
+/* ---------- Afrondmotor (rekent met gehele getallen, geen kommagetallen) ---------- */
+function fmt(r,d){var s=String(r);while(s.length<=d)s='0'+s;return d?s.slice(0,-d)+','+s.slice(-d):s}
+function decs(n){return (n.split(',')[1]||'').length}
+function val(n){return parseInt(n.split(',').join(''),10)}
+function roundStr(n,d){var k=decs(n),step=Math.pow(10,k-d);return fmt(Math.floor((val(n)+step/2)/step),d)}
+function parts(n,d){
+  var a=n.split(','),ip=a[0],dp=a[1]||'';
+  return {kept:d===0?ip:ip+','+dp.slice(0,d),sep:d===0?',':'',next:dp.charAt(d),rest:dp.slice(d+1)};
+}
+function numShow(n,d,euro){
+  var p=parts(n,d);
+  return '<span class="num" role="img" aria-label="'+esc((euro?'€ ':'')+n+', met een streep na het laatste cijfer waarop je afrondt')+'">'+
+    (euro?'<span class="eur">€&nbsp;</span>':'')+
+    '<span class="k">'+p.kept+'</span><span class="cut"></span>'+
+    (p.sep?'<span class="r">'+p.sep+'</span>':'')+
+    '<span class="nx">'+p.next+'</span><span class="r">'+p.rest+'</span></span>';
+}
+function plain(n,euro){return '<span class="num"><span class="k">'+(euro?'€&nbsp;':'')+n+'</span></span>'}
+function why(n,d,euro){
+  var x=+parts(n,d).next,r=roundStr(n,d);
+  return 'Achter de streep staat een '+x+'. '+(x>=5?'Dat is 5 of hoger, dus het cijfer voor de streep wordt 1 groter.':'Dat is 4 of lager, dus het cijfer voor de streep blijft hetzelfde.')+' Het antwoord is '+(euro?'€ ':'')+r+'.';
+}
+function choices(n,d,euro){
+  var k=decs(n),step=Math.pow(10,k-d),down=Math.floor(val(n)/step),up=down+1,third=down>0?down-1:up+1;
+  return shuffle([down,up,third]).map(function(x){var s=fmt(x,d);return {id:s,html:(euro?'€ ':'')+s}});
+}
+var LV={0:'hele getallen',1:'1 decimaal',2:'2 decimalen'};
+
+/* ---------- Vragenmotor ---------- */
+function head(){
+  $('#pts').textContent=state.score;
+  $('#bar').style.width=(state.i/(STEPS.length-1)*100)+'%';
+  $('.prog').setAttribute('aria-valuenow',Math.round(state.i/(STEPS.length-1)*100));
+  $('#stepname').textContent='Stap '+(state.i+1)+' van '+STEPS.length+' · '+STEPS[state.i].name;
+}
+function quiz(el,cfg,done){
+  var N=cfg.items.length,n=0;
+  function show(){
+    var it=cfg.items[n],tries=0,locked=false;
+    var dots=cfg.items.map(function(_,k){return '<span class="'+(k<n?'d':k===n?'c':'')+'"></span>'}).join('');
+    el.innerHTML='<div class="qhead"><span>Vraag '+(n+1)+' van '+N+'</span><span class="dots" aria-hidden="true">'+dots+'</span></div>'+
+      '<div class="qcard">'+cfg.stim(it)+
+      '<div class="qtext"><p class="q">'+cfg.q(it)+'</p>'+listenBtn(cfg.say(it),'Luister')+'</div>'+
+      '<div class="opts '+cfg.cls+'">'+cfg.opts(it).map(function(o){return '<button class="opt" type="button" data-id="'+esc(o.id)+'">'+o.html+'</button>'}).join('')+'</div>'+
+      '<p class="fb" role="status"></p><div class="after"></div></div>';
+    var fb=$('.fb',el),after=$('.after',el);
+    el.querySelectorAll('.opt').forEach(function(b){
+      b.onclick=function(){
+        if(locked||b.disabled)return;
+        var id=b.dataset.id;
+        if(id===cfg.correct(it)){
+          locked=true;b.classList.add('ok');
+          el.querySelectorAll('.opt').forEach(function(x){if(x!==b)x.disabled=true});
+          if(tries===0){state.score++;head();fb.textContent='Goed zo! Je krijgt 1 punt.'}
+          else{fb.textContent='Goed! Nu weet je het.'}
+          fb.className='fb good';
+          after.innerHTML='<p class="expl">'+cfg.explain(it)+'</p><button class="go" type="button" id="nq">'+(n<N-1?'Volgende vraag':'Klaar, verder')+'</button>';
+          $('#nq',el).onclick=function(){if(n<N-1){n++;show();$('#top').scrollIntoView()}else{done()}};
+        }else{
+          tries++;b.disabled=true;b.classList.add('no');
+          fb.className='fb bad';
+          fb.textContent=(cfg.wrong?cfg.wrong(it,id):'Nog niet goed.')+' Probeer het nog een keer.';
+        }
+      };
+    });
+    if(state.auto)say(cfg.say(it),null);
+  }
+  show();
+}
+var next=function(){go(state.i+1)};
+
+/* ---------- Stappen ---------- */
+var LADDER='<div class="ladder"><div class="lo"><div class="dg"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div><small>Het cijfer ervoor blijft hetzelfde</small></div><div class="hi"><div class="dg"><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div><small>Het cijfer ervoor wordt 1 groter (+1)</small></div></div>';
+
+function s0(root){
+  root.innerHTML='<section class="panel stack">'+
+    '<p class="kicker">Wiskunde · klas 1 vmbo basis</p>'+
+    '<h1>Decimalen afronden</h1>'+
+    '<div class="numbox">'+numShow('0,913',2,true)+'</div>'+
+    LADDER+
+    '<p>Je leest, je luistert en je doet kleine opdrachten. De les duurt ongeveer 30 minuten.</p>'+
+    '<ol class="plan"><li><b>Afronden leren</b><span>± 6 minuten</span></li><li><b>Afronden op centen</b><span>± 8 minuten</span></li><li><b>Afronden op andere plekken</b><span>± 8 minuten</span></li><li><b>Waar of niet waar</b><span>± 3 minuten</span></li><li><b>Bij het tankstation</b><span>± 5 minuten</span></li></ol>'+
+    '<div class="field"><label for="naam">Hoe heet je? (mag leeg)</label><input type="text" id="naam" maxlength="30" autocomplete="off"></div>'+
+    listenBtn('Welkom bij de les over decimalen afronden. Je gaat leren hoe je een getal met decimalen afrondt, bijvoorbeeld op centen. Tik op de knop Lees voor als je een tekst wilt horen. Zet je geluid aan.')+
+    '<p class="muted">Zet je geluid aan. Tik op <b>Lees voor</b> om een tekst te horen.</p>'+
+    '<div class="foot"><span></span><button class="go" type="button" data-next>Start de les</button></div></section>';
+  maybeAuto('Welkom bij de les over decimalen afronden.');
+}
+
+var EX=[{n:'0,913',d:2},{n:'0,917',d:2}];
+function s1(root){
+  var seen={},count=0;
+  var t='Bij afronden kijk je naar het cijfer achter de streep. Is dat cijfer 0, 1, 2, 3 of 4? Dan blijft het cijfer voor de streep hetzelfde. Is dat cijfer 5, 6, 7, 8 of 9? Dan wordt het cijfer voor de streep 1 groter.';
+  root.innerHTML='<section class="panel stack"><h2>Afronden</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>Bij afronden zet je een <b>streep</b> achter het cijfer waarop je afrondt.</p><p>Je kijkt naar het <b>cijfer achter de streep</b>.</p>'+LADDER+listenBtn(t)+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Rond af op centen (2 decimalen). Tik op een bedrag en kijk wat er gebeurt.</p>'+
+    '<div class="cards">'+EX.map(function(e,k){return '<button class="card" type="button" data-k="'+k+'">'+numShow(e.n,e.d,true)+'<span class="res" id="r'+k+'">Tik om te zien</span></button>'}).join('')+'</div></div>'+
+    '<div class="foot"><span class="count">Bekeken: <b id="cnt">0</b> van 2</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  root.querySelectorAll('[data-k]').forEach(function(b){
+    b.onclick=function(){
+      var k=+b.dataset.k,e=EX[k],x=+parts(e.n,e.d).next,r=roundStr(e.n,e.d);
+      if(!seen[k]){seen[k]=1;count++;b.classList.add('seen');$('#cnt').textContent=count;if(count===2)$('#nx').disabled=false}
+      $('#r'+k).innerHTML='<ol><li>De streep staat achter de tweede decimaal.</li><li>Achter de streep staat een <b>'+x+'</b>.</li><li>'+(x>=5?'5 of hoger: het cijfer ervoor wordt 1 groter (+1).':'4 of lager: het cijfer ervoor blijft hetzelfde.')+'</li></ol><span class="res">Antwoord: <b>€ '+r+'</b></span>';
+      say('Rond '+'€ '+e.n+' af op centen. '+why(e.n,e.d,true),null);
+    };
+  });
+  maybeAuto(t);
+}
+
+function s2(root){
+  var items=shuffle([{n:'0,913'},{n:'0,917'},{n:'2,846'},{n:'5,452'},{n:'1,285'},{n:'3,208'}]);
+  root.innerHTML='<section class="panel stack"><h2>Oefening: kijk achter de streep</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:items,cls:'words',
+    stim:function(it){return '<div class="numbox">'+numShow(it.n,2,true)+'</div>'},
+    q:function(){return 'Wat gebeurt er met het cijfer voor de streep?'},
+    say:function(it){return 'Wat gebeurt er met het cijfer voor de streep? Het bedrag is € '+it.n+'.'},
+    opts:function(){return [{id:'same',html:'Het blijft hetzelfde'},{id:'up',html:'Het wordt 1 groter'}]},
+    correct:function(it){return +parts(it.n,2).next>=5?'up':'same'},
+    wrong:function(){return 'Nee, kijk goed naar het oranje cijfer.'},
+    explain:function(it){var x=+parts(it.n,2).next;return 'Achter de streep staat een '+x+'. '+(x>=5?'Dat is 5 of hoger, dus het cijfer voor de streep wordt 1 groter.':'Dat is 4 of lager, dus het cijfer voor de streep blijft hetzelfde.')}
+  },next);
+}
+
+function s3(root){
+  var items=shuffle([{n:'0,913'},{n:'0,917'},{n:'1,284'},{n:'2,556'},{n:'3,708'},{n:'4,331'}]);
+  root.innerHTML='<section class="panel stack"><h2>Oefening: afronden op centen</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:items,cls:'money',
+    stim:function(it){return '<div class="numbox">'+numShow(it.n,2,true)+'</div>'},
+    q:function(){return 'Rond af op centen (2 decimalen).'},
+    say:function(it){return 'Rond € '+it.n+' af op centen. Dat is 2 decimalen.'},
+    opts:function(it){return choices(it.n,2,true)},
+    correct:function(it){return roundStr(it.n,2)},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return why(it.n,2,true)}
+  },next);
+}
+
+var NUMS=['3,478','12,654','7,239'];
+function s4(root){
+  var cur=0,lvl=-1,seen={},count=0;
+  var t='Je kunt op verschillende plekken afronden: op hele getallen, op 1 decimaal of op 2 decimalen. Zet de streep achter het cijfer waarop je afrondt. Kijk dan naar het cijfer achter de streep.';
+  root.innerHTML='<section class="panel stack"><h2>Andere plekken</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>Je kunt op verschillende plekken afronden: op <b>hele getallen</b>, op <b>1 decimaal</b> of op <b>2 decimalen</b>.</p>'+
+    '<p>Zet de streep achter het cijfer waarop je afrondt. Daarna werkt het hetzelfde.</p>'+listenBtn(t)+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Kies een getal. Kies daarna waarop je afrondt.</p>'+
+    '<div class="row2" role="group" aria-label="Kies een getal">'+NUMS.map(function(n,k){return '<button class="chip" type="button" data-n="'+k+'" aria-pressed="'+(k===0)+'">'+n+'</button>'}).join('')+'</div>'+
+    '<div class="levels">'+[0,1,2].map(function(l){return '<button class="opt" type="button" data-l="'+l+'" aria-pressed="false">Rond af op '+LV[l]+'</button>'}).join('')+'</div>'+
+    '<div class="say" id="show" aria-live="polite"></div></div>'+
+    '<div class="foot"><span class="count">Geprobeerd: <b id="cnt">0</b> van 3</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  function draw(){
+    var n=NUMS[cur];
+    if(lvl<0){$('#show').innerHTML='<div class="numbox">'+plain(n)+'</div><p class="muted">Tik hierboven op een knop.</p>';return}
+    var r=roundStr(n,lvl);
+    $('#show').innerHTML='<div class="numbox">'+numShow(n,lvl)+'</div><p>'+n+' afgerond op '+LV[lvl]+' is <b>'+r+'</b>.</p><p class="muted">'+why(n,lvl,false)+'</p>';
+  }
+  root.querySelectorAll('[data-n]').forEach(function(b){
+    b.onclick=function(){
+      cur=+b.dataset.n;
+      root.querySelectorAll('[data-n]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+      draw();
+      if(lvl>=0)say(NUMS[cur]+' afgerond op '+LV[lvl]+' is '+roundStr(NUMS[cur],lvl)+'.',null);
+    };
+  });
+  root.querySelectorAll('[data-l]').forEach(function(b){
+    b.onclick=function(){
+      lvl=+b.dataset.l;
+      root.querySelectorAll('[data-l]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+      if(!seen[lvl]){seen[lvl]=1;count++;$('#cnt').textContent=count;if(count===3)$('#nx').disabled=false}
+      draw();
+      say(NUMS[cur]+' afgerond op '+LV[lvl]+' is '+roundStr(NUMS[cur],lvl)+'. '+why(NUMS[cur],lvl,false),null);
+    };
+  });
+  draw();
+  maybeAuto(t);
+}
+
+function s5(root){
+  var items=shuffle([{n:'4,36',d:1},{n:'7,82',d:1},{n:'3,478',d:0},{n:'12,654',d:2},{n:'9,249',d:1},{n:'6,98',d:1}]);
+  root.innerHTML='<section class="panel stack"><h2>Oefening: rond af</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:items,cls:'money',
+    stim:function(it){return '<div class="numbox">'+numShow(it.n,it.d)+'</div>'},
+    q:function(it){return 'Rond '+it.n+' af op '+LV[it.d]+'.'},
+    say:function(it){return 'Rond '+it.n+' af op '+LV[it.d]+'.'},
+    opts:function(it){return choices(it.n,it.d,false)},
+    correct:function(it){return roundStr(it.n,it.d)},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return why(it.n,it.d,false)+(it.n==='6,98'?' Let op: 6,9 wordt 1 groter en dat geeft 7,0.':'')}
+  },next);
+}
+
+var TF=[
+  {s:'Bij afronden kijk je naar het cijfer achter de streep.',a:'w',e:'Klopt. Dat cijfer bepaalt of je omhoog of omlaag rondt.'},
+  {s:'Het cijfer 4 rond je naar boven af.',a:'n',e:'Nee. Bij een 4 blijft het cijfer voor de streep hetzelfde.'},
+  {s:'€ 2,456 afgerond op centen is € 2,46.',a:'w',e:'Klopt. Achter de streep staat een 6, dus het wordt 1 groter.'},
+  {s:'Het cijfer 5 rond je naar boven af.',a:'w',e:'Klopt. Bij 5 of hoger wordt het cijfer voor de streep 1 groter.'},
+  {s:'€ 1,342 afgerond op centen is € 1,35.',a:'n',e:'Nee. Achter de streep staat een 2, dus het blijft € 1,34.'},
+  {s:'3,5 afgerond op hele getallen is 3.',a:'n',e:'Nee. Achter de streep staat een 5, dus het wordt 4.'}
+];
+function s6(root){
+  root.innerHTML='<section class="panel stack"><h2>Waar of niet waar</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(TF),cls:'tf',
+    stim:function(){return ''},
+    q:function(it){return it.s},
+    say:function(it){return it.s},
+    opts:function(){return [{id:'w',html:'Waar'},{id:'n',html:'Niet waar'}]},
+    correct:function(it){return it.a},
+    wrong:function(){return 'Nee, dat klopt niet.'},
+    explain:function(it){return it.e}
+  },next);
+}
+
+var PRIJZEN=['1,879','2,034','2,156','1,743'];
+function s7(root){
+  var tries=[0,0,0,0],okk=[false,false,false,false];
+  var t='Bij het tankstation staat de prijs van een liter benzine met 3 decimalen. Op de bon staat de prijs afgerond op centen. Tik het afgeronde bedrag in en druk op Controleer.';
+  root.innerHTML='<section class="panel stack"><h2>Bij het tankstation</h2>'+
+    '<p>De literprijs heeft 3 decimalen. Op de bon staat het bedrag <b>afgerond op centen</b>. Typ het bedrag, bijvoorbeeld 1,88.</p>'+listenBtn(t)+
+    '<div class="tank">'+PRIJZEN.map(function(p,k){return '<div class="trow"><span class="lab">Prijs per liter '+(k+1)+'</span>'+numShow(p,2,true)+'<input type="text" id="t'+k+'" inputmode="decimal" autocomplete="off" placeholder="Bedrag op de bon" aria-label="Afgerond bedrag van prijs '+(k+1)+'"><span class="msg" id="m'+k+'" role="status"></span></div>'}).join('')+'</div>'+
+    '<div class="foot"><button class="go" type="button" id="chk">Controleer</button><button class="go" type="button" data-next id="nx" disabled>Klaar</button></div></section>';
+  function clean(v){return v.replace(/[€\s]/g,'').replace('.',',')}
+  $('#chk').onclick=function(){
+    PRIJZEN.forEach(function(p,k){
+      if(okk[k])return;
+      var inp=$('#t'+k),msg=$('#m'+k),v=clean(inp.value);
+      if(!v){msg.className='msg';msg.textContent='Vul een bedrag in.';return}
+      if(v===roundStr(p,2)){
+        okk[k]=true;inp.className='ok';inp.readOnly=true;msg.className='msg good';
+        if(tries[k]===0){state.score++;head();msg.textContent='Goed zo! +1 punt'}else{msg.textContent='Goed!'}
+      }else{
+        tries[k]++;inp.className='bad';msg.className='msg bad';
+        msg.textContent='Nog niet goed. Kijk naar het oranje cijfer achter de streep.';
+      }
+    });
+    if(okk.every(Boolean))$('#nx').disabled=false;
+  };
+  maybeAuto(t);
+}
+
+function star(on){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z" fill="'+(on?'var(--sun)':'var(--line)')+'" stroke="'+(on?'#b88400':'var(--muted)')+'" stroke-width="1.2" stroke-linejoin="round"/></svg>'}
+function s8(root){
+  var pct=state.score/MAX,stars=pct>=.85?3:pct>=.6?2:1;
+  var nm=state.name?', '+esc(state.name):'';
+  var say1='Goed gedaan'+(state.name?', '+state.name:'')+'! Je hebt '+state.score+' van de '+MAX+' punten.';
+  root.innerHTML='<section class="panel stack center"><h2>Goed gedaan'+nm+'!</h2>'+
+    '<div class="stars" role="img" aria-label="'+stars+' van de 3 sterren">'+[1,2,3].map(function(n){return star(n<=stars)}).join('')+'</div>'+
+    '<p class="big">Je hebt <b>'+state.score+'</b> van de <b>'+MAX+'</b> punten.</p>'+listenBtn(say1)+
+    '<div class="theory"><span class="tab">Dit heb je geleerd</span>'+
+    '<p>Bij afronden zet je een streep en kijk je naar het <b>cijfer achter de streep</b>.</p>'+LADDER+
+    '<div class="numbox" style="width:100%">'+numShow('0,917',2,true)+'</div><p>€ 0,917 afgerond op centen is <b>€ 0,92</b>.</p></div>'+
+    '<button class="go" type="button" id="again">Begin opnieuw</button></section>';
+  $('#again').onclick=function(){state.score=0;go(0)};
+  maybeAuto(say1);
+}
+
+var STEPS=[
+  {name:'Start',fn:s0},
+  {name:'Afronden leren',fn:s1},
+  {name:'Oefening: kijk achter de streep',fn:s2},
+  {name:'Oefening: afronden op centen',fn:s3},
+  {name:'Andere plekken',fn:s4},
+  {name:'Oefening: rond af',fn:s5},
+  {name:'Waar of niet waar',fn:s6},
+  {name:'Bij het tankstation',fn:s7},
+  {name:'Klaar',fn:s8}
+];
+function go(i){
+  stopSpeech();state.i=i;head();
+  STEPS[i].fn($('#stage'));
+  $('#top').scrollIntoView();
+  $('#stage').focus({preventScroll:true});
+}
+
+document.addEventListener('click',function(e){
+  var l=e.target.closest('.listen');
+  if(l){say(l.dataset.say,l);return}
+  var nx=e.target.closest('[data-next]');
+  if(nx&&!nx.disabled){var nm=$('#naam');if(nm)state.name=nm.value.trim();go(state.i+1)}
+});
+$('#auto').onchange=function(e){state.auto=e.target.checked;if(!state.auto)stopSpeech()};
+
+go(0);
+})();
+</script>
+
+</html>

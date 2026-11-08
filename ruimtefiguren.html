@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="nl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruimtefiguren en grensvlakken</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: één smalle kolom, één stap per scherm. Blauw = theorie, groen = voorbeeld en grensvlak (zoals in het boek). */
+:root{
+  --bg:#eef5ff; --surface:#ffffff; --ink:#10253f; --muted:#4a5f7a; --line:#c9d9ee;
+  --blue:#1c6df2; --blue-d:#1450b8; --on-blue:#ffffff; --blue-soft:#dcebff;
+  --teal:#0aa384; --teal-d:#067a63; --on-teal:#ffffff; --teal-soft:#d3f3ea;
+  --sun:#ffc531; --bad:#c2381f; --bad-soft:#ffe2dc;
+  --fig:#b7c9f2; --figline:#1d4f9c; --hl:#0aa384; --hl-line:#066e58;
+  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+    --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+    --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+    --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+    --fig:#3d5a94; --figline:#a9c4f5; --hl:#2fd1ac; --hl-line:#b6f5e6;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+  --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+  --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+  --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+  --fig:#3d5a94; --figline:#a9c4f5; --hl:#2fd1ac; --hl-line:#b6f5e6;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.55;
+  padding-block:16px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:clamp(1.6rem,5vw,2.1rem)}
+h3{font-size:1.5rem}
+p{margin:0}
+b{font-weight:800}
+.muted{color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.brand{font:700 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.95rem;font-weight:600}
+.tools label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.tools input{width:20px;height:20px;accent-color:var(--blue)}
+.pts{background:var(--sun);color:#3d2d00;border-radius:99px;padding:2px 14px;font-weight:800}
+.prog{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+#bar{display:block;height:100%;width:0;background:var(--teal);transition:width .4s}
+.stepname{font-size:.95rem;font-weight:600;color:var(--muted)}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.center{align-items:center;text-align:center}
+#stage{outline:none}
+#stage>*{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.theory,.example{position:relative;border:2px solid;border-radius:6px 14px 14px 14px;padding:46px 18px 18px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;width:100%}
+.theory{background:var(--blue-soft);border-color:var(--blue)}
+.example{background:var(--teal-soft);border-color:var(--teal-d);align-items:stretch}
+.tab{position:absolute;top:-2px;left:-2px;padding:3px 16px;border-radius:6px 0 12px 0;font:700 .95rem var(--font-display);letter-spacing:.05em;background:var(--blue);color:var(--on-blue)}
+.example .tab{background:var(--teal-d);color:var(--on-teal)}
+.theory p{text-align:left}
+.theory b{color:var(--blue)}
+
+.listen{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--blue);background:var(--surface);color:var(--blue);border-radius:99px;padding:6px 16px 6px 12px;font-weight:800;font-size:.95rem;cursor:pointer}
+.listen svg{width:22px;height:22px;fill:currentColor}
+.listen.playing{background:var(--blue);color:var(--on-blue)}
+.nosynth .listen{display:none}
+
+.go{border:0;background:var(--blue);color:var(--on-blue);border-radius:12px;padding:12px 26px;font:700 1.25rem var(--font-display);cursor:pointer;box-shadow:0 4px 0 var(--blue-d)}
+.go:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--blue-d)}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font-weight:700;color:var(--muted)}
+
+.fig{display:block;width:100%;height:auto}
+.fig .f{fill:var(--fig);stroke:var(--figline);stroke-width:2;stroke-linejoin:round}
+.fig .h{fill:var(--hl);stroke:var(--hl-line);stroke-width:2;stroke-linejoin:round}
+.fig .dash{fill:none;stroke:var(--figline);stroke-width:1.5;stroke-dasharray:4 3;opacity:.55}
+.flat{width:44px;height:44px;fill:var(--hl);stroke:var(--hl-line);stroke-width:2;flex:none}
+
+.opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:58px;padding:10px;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:12px;box-shadow:0 3px 0 var(--line);cursor:pointer;font-weight:700;min-width:0}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{cursor:default}
+.opt:disabled:not(.ok):not(.no){opacity:.55}
+.opt.ok{border-color:var(--teal-d);background:var(--teal-soft);box-shadow:0 3px 0 var(--teal-d)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opts{display:grid;gap:10px}
+.opts.figs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts.words{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opts.words .opt,.opts.vormen .opt{flex-direction:row;justify-content:flex-start;gap:12px;font-size:1.1rem;padding:8px 14px}
+.opts.vormen{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opts.tf{grid-template-columns:1fr 1fr}
+.opts.tf .opt{font:700 1.3rem var(--font-display);min-height:64px}
+
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tiles.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tile .nm{font:700 1.1rem var(--font-display)}
+.tile.seen,.gtile.seen{border-color:var(--teal-d)}
+.tile.seen::after,.gtile.seen::after{content:"\2713";position:absolute;top:4px;right:8px;color:var(--teal-d);font-weight:800}
+.gtile .ans{display:flex;align-items:center;gap:8px;font-size:1.05rem;min-height:30px;color:var(--muted)}
+.gtile .ans b{color:var(--ink)}
+.gtile .ans .flat{width:28px;height:28px}
+
+.detail{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:6px;padding:14px;background:var(--surface);border:2px dashed var(--line);border-radius:12px;text-align:center}
+.pair{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;width:100%}
+.pair figure{margin:0;width:min(170px,42%);min-width:120px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.pair figcaption{font-size:.9rem;font-weight:600;color:var(--muted)}
+
+.vormen4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%}
+.vf{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--surface);border-radius:10px;padding:8px 4px;font-weight:700;font-size:.95rem}
+
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.dots span{display:inline-block;width:12px;height:12px;margin-left:5px;border-radius:50%;background:var(--line)}
+.dots .d{background:var(--teal)}
+.dots .c{background:var(--blue)}
+.qcard{display:flex;flex-direction:column;gap:14px}
+.stim{width:min(250px,75%);margin:0 auto}
+.qtext{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.q{font:700 1.35rem/1.25 var(--font-display)}
+.fb{min-height:1.5em;font-weight:800}
+.fb.good{color:var(--teal-d)}
+.fb.bad{color:var(--bad)}
+.after{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.expl{background:var(--blue-soft);border-radius:10px;padding:10px 14px}
+
+.kicker{font:700 1rem var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--teal-d)}
+.heroimgs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:460px}
+.plan{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:6px}
+.plan li::marker{font-weight:800;color:var(--blue)}
+.plan li{padding-left:6px}
+.plan span{color:var(--muted);font-size:.95rem;margin-left:8px}
+.field{display:flex;flex-direction:column;gap:4px;max-width:340px}
+.field label{font-weight:700}
+input[type=text],select{background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.klas{display:flex;flex-direction:column;gap:14px}
+.krow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 12px}
+.krow label{grid-column:1/-1;font-weight:800;color:var(--blue)}
+@media (max-width:520px){.krow{grid-template-columns:1fr}.vormen4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.stars{display:flex;gap:8px}
+.stars svg{width:56px;height:56px;animation:pop .5s backwards}
+.stars svg:nth-child(2){animation-delay:.15s}
+.stars svg:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)}}
+.big{font-size:1.3rem}
+.recap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;width:100%}
+.recap div{display:flex;flex-direction:column;align-items:center;font-size:.8rem;font-weight:700}
+@media (max-width:520px){.recap{grid-template-columns:repeat(3,minmax(0,1fr))}.recap div{font-size:.9rem}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header class="top" id="top">
+    <span class="brand">Wiskunde · klas 1</span>
+    <div class="tools">
+      <label for="auto"><input type="checkbox" id="auto"> Lees alles voor</label>
+      <span class="pts">Punten <span id="pts">0</span></span>
+    </div>
+  </header>
+  <div class="prog" role="progressbar" aria-label="Voortgang van de les" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="bar"></span></div>
+  <div class="stepname" id="stepname"></div>
+  <main id="stage" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+var shuffle=function(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a};
+var MAX=27;
+var state={i:0,score:0,name:'',auto:false};
+
+/* ---------- Voorlezen ---------- */
+var synth=('speechSynthesis' in window)?window.speechSynthesis:null;
+var voice=null,active=null,token=0;
+if(!synth)$('#app').classList.add('nosynth');
+function pickVoice(){if(!synth)return;var v=synth.getVoices();voice=v.find(function(x){return /^nl[-_]NL$/i.test(x.lang)})||v.find(function(x){return /^nl/i.test(x.lang)})||null}
+if(synth){pickVoice();if('onvoiceschanged' in synth)synth.onvoiceschanged=pickVoice}
+function clearActive(){if(active){active.classList.remove('playing');active=null}}
+function stopSpeech(){token++;if(synth)synth.cancel();clearActive()}
+function say(text,btn){
+  if(!synth)return;
+  var same=btn&&active===btn;
+  stopSpeech();
+  if(same)return;
+  var my=++token;
+  var u=new SpeechSynthesisUtterance(text);
+  u.lang='nl-NL';if(voice)u.voice=voice;u.rate=.9;
+  u.onend=u.onerror=function(){if(token===my)clearActive()};
+  if(btn){active=btn;btn.classList.add('playing')}
+  synth.speak(u);
+}
+var SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function listenBtn(text,label){return '<button class="listen" type="button" data-say="'+esc(text)+'">'+SPK+'<span>'+(label||'Lees voor')+'</span></button>'}
+
+/* ---------- Tekeningen ---------- */
+var C=function(on){return on?'h':'f'};
+var SH={
+  kubus:function(hl){return '<polygon class="'+C(hl==='front')+'" points="20,40 70,40 70,90 20,90"/><polygon class="'+C(hl==='top')+'" points="20,40 70,40 94,16 44,16"/><polygon class="'+C(hl==='right')+'" points="70,40 70,90 94,66 94,16"/>'},
+  balk:function(hl){return '<polygon class="'+C(hl==='front')+'" points="8,46 80,46 80,92 8,92"/><polygon class="'+C(hl==='top')+'" points="8,46 80,46 106,20 34,20"/><polygon class="'+C(hl==='right')+'" points="80,46 80,92 106,66 106,20"/>'},
+  piramide:function(hl){return '<polygon class="'+C(hl==='tri')+'" points="58,8 20,78 70,92"/><polygon class="f" points="58,8 70,92 104,74"/>'+(hl?'':'<path class="dash" d="M58,8 L56,64 M20,78 L56,64 L104,74"/>')},
+  bol:function(){return '<circle class="f" cx="60" cy="50" r="40"/><ellipse cx="45" cy="33" rx="15" ry="8" fill="#fff" opacity=".35" transform="rotate(-30 45 33)"/>'},
+  cilinder:function(hl){return '<path class="f" d="M28,24 V76 A32,11 0 0 0 92,76 V24 Z"/><ellipse class="'+C(hl==='top')+'" cx="60" cy="24" rx="32" ry="11"/>'},
+  kegel:function(){return '<path class="f" d="M60,8 L24,78 A36,11 0 0 0 96,78 Z"/>'}
+};
+function fig(type,hl,label){return '<svg class="fig" viewBox="0 0 120 100" role="img" aria-label="'+esc(label||type)+'">'+SH[type](hl)+'</svg>'}
+var FLAT={
+  cirkel:'<circle cx="30" cy="30" r="24"/>',
+  driehoek:'<polygon points="30,6 55,52 5,52"/>',
+  rechthoek:'<rect x="4" y="12" width="52" height="34"/>',
+  vierkant:'<rect x="8" y="8" width="44" height="44"/>'
+};
+function flat(n){return '<svg class="flat" viewBox="0 0 60 60" aria-hidden="true">'+FLAT[n]+'</svg>'}
+
+var S='stroke-width="2" stroke-linejoin="round"';
+var OBJ={
+  dobbelsteen:'<polygon points="20,40 70,40 70,90 20,90" fill="#fff" stroke="#222" '+S+'/><polygon points="20,40 70,40 94,16 44,16" fill="#e6e6e6" stroke="#222" '+S+'/><polygon points="70,40 70,90 94,66 94,16" fill="#cfcfcf" stroke="#222" '+S+'/><g fill="#222"><circle cx="31" cy="51" r="4"/><circle cx="59" cy="51" r="4"/><circle cx="45" cy="65" r="4"/><circle cx="31" cy="79" r="4"/><circle cx="59" cy="79" r="4"/><circle cx="69" cy="28" r="3.5"/></g>',
+  voetbal:'<circle cx="60" cy="50" r="40" fill="#fff" stroke="#222" '+S+'/><polygon points="60,38 71.4,46.3 67,59.7 53,59.7 48.6,46.3" fill="#222"/><path d="M60,38 L60,12 M71.4,46.3 L96,38 M67,59.7 L82,82 M53,59.7 L38,82 M48.6,46.3 L24,38" stroke="#222" stroke-width="2" fill="none"/>',
+  blikje:'<path d="M28,24 V76 A32,11 0 0 0 92,76 V24 Z" fill="#e53935" stroke="#7f1d1d" '+S+'/><rect x="28" y="46" width="64" height="16" fill="#fff" opacity=".9"/><ellipse cx="60" cy="24" rx="32" ry="11" fill="#cfd8dc" stroke="#7f1d1d" '+S+'/><ellipse cx="60" cy="24" rx="20" ry="6" fill="#b0bec5"/>',
+  feestmuts:'<path d="M60,12 L26,80 A34,10 0 0 0 94,80 Z" fill="#8e44ad" stroke="#4a235a" '+S+'/><polygon points="50,32 70,32 80,52 40,52" fill="#ffd54f"/><polygon points="33,66 87,66 92,76 28,76" fill="#ffd54f"/><circle cx="60" cy="11" r="7" fill="#ffd54f" stroke="#4a235a" stroke-width="2"/>',
+  schoenendoos:'<polygon points="8,46 80,46 80,92 8,92" fill="#c98a4b" stroke="#5a3a14" '+S+'/><polygon points="8,46 80,46 106,20 34,20" fill="#e0a867" stroke="#5a3a14" '+S+'/><polygon points="80,46 80,92 106,66 106,20" fill="#a76d33" stroke="#5a3a14" '+S+'/><rect x="22" y="62" width="34" height="16" fill="#fff" opacity=".85"/>',
+  piramide:'<circle cx="102" cy="18" r="11" fill="#ffb300"/><line x1="0" y1="96" x2="120" y2="96" stroke="#d9b45a" stroke-width="3"/><polygon points="58,18 20,82 70,94" fill="#f0d078" stroke="#8a6a1f" '+S+'/><polygon points="58,18 70,94 104,78" fill="#cfa24a" stroke="#8a6a1f" '+S+'/>'
+};
+var OBJNAME={schoenendoos:'Schoenendoos',dobbelsteen:'Dobbelsteen',piramide:'Piramide in Egypte',voetbal:'Voetbal',blikje:'Blikje',feestmuts:'Feestmuts'};
+var OBJTXT={schoenendoos:'een schoenendoos',dobbelsteen:'een dobbelsteen',piramide:'een piramide in Egypte',voetbal:'een voetbal',blikje:'een blikje',feestmuts:'een feestmuts'};
+function obj(id){return '<svg class="fig" viewBox="0 0 120 100" role="img" aria-label="'+esc(OBJNAME[id])+'">'+OBJ[id]+'</svg>'}
+
+var FIGS=[
+  {id:'balk',naam:'balk',obj:'schoenendoos',tekst:'Een balk lijkt op een schoenendoos.'},
+  {id:'kubus',naam:'kubus',obj:'dobbelsteen',tekst:'Een kubus lijkt op een dobbelsteen.'},
+  {id:'piramide',naam:'piramide',obj:'piramide',tekst:'Een piramide heeft een punt. Denk aan de piramides in Egypte.'},
+  {id:'bol',naam:'bol',obj:'voetbal',tekst:'Een bol is helemaal rond, zoals een voetbal.'},
+  {id:'cilinder',naam:'cilinder',obj:'blikje',tekst:'Een cilinder lijkt op een blikje.'},
+  {id:'kegel',naam:'kegel',obj:'feestmuts',tekst:'Een kegel heeft een punt en een ronde onderkant, zoals een feestmuts.'}
+];
+var figById=function(id){return FIGS.find(function(f){return f.id===id})};
+
+/* ---------- Vragenmotor ---------- */
+function head(){
+  $('#pts').textContent=state.score;
+  $('#bar').style.width=(state.i/(STEPS.length-1)*100)+'%';
+  $('.prog').setAttribute('aria-valuenow',Math.round(state.i/(STEPS.length-1)*100));
+  $('#stepname').textContent='Stap '+(state.i+1)+' van '+STEPS.length+' · '+STEPS[state.i].name;
+}
+function quiz(el,cfg,done){
+  var N=cfg.items.length,n=0;
+  function show(){
+    var it=cfg.items[n],tries=0,locked=false;
+    var dots=cfg.items.map(function(_,k){return '<span class="'+(k<n?'d':k===n?'c':'')+'"></span>'}).join('');
+    el.innerHTML='<div class="qhead"><span>Vraag '+(n+1)+' van '+N+'</span><span class="dots" aria-hidden="true">'+dots+'</span></div>'+
+      '<div class="qcard">'+cfg.stim(it)+
+      '<div class="qtext"><p class="q">'+cfg.q(it)+'</p>'+listenBtn(cfg.say(it),'Luister')+'</div>'+
+      '<div class="opts '+cfg.cls+'">'+cfg.opts(it).map(function(o){return '<button class="opt" type="button" data-id="'+o.id+'">'+o.html+'</button>'}).join('')+'</div>'+
+      '<p class="fb" role="status"></p><div class="after"></div></div>';
+    var fb=$('.fb',el),after=$('.after',el);
+    el.querySelectorAll('.opt').forEach(function(b){
+      b.onclick=function(){
+        if(locked||b.disabled)return;
+        var id=b.dataset.id;
+        if(id===cfg.correct(it)){
+          locked=true;b.classList.add('ok');
+          el.querySelectorAll('.opt').forEach(function(x){if(x!==b)x.disabled=true});
+          if(tries===0){state.score++;head();fb.textContent='Goed zo! Je krijgt 1 punt.'}
+          else{fb.textContent='Goed! Nu weet je het.'}
+          fb.className='fb good';
+          after.innerHTML='<p class="expl">'+cfg.explain(it)+'</p><button class="go" type="button" id="nq">'+(n<N-1?'Volgende vraag':'Klaar, verder')+'</button>';
+          $('#nq',el).onclick=function(){if(n<N-1){n++;show();$('#top').scrollIntoView()}else{done()}};
+        }else{
+          tries++;b.disabled=true;b.classList.add('no');
+          fb.className='fb bad';
+          fb.textContent=(cfg.wrong?cfg.wrong(it,id):'Nog niet goed.')+' Probeer het nog een keer.';
+        }
+      };
+    });
+    if(state.auto)say(cfg.say(it),null);
+  }
+  show();
+}
+var next=function(){go(state.i+1)};
+
+/* ---------- Stappen ---------- */
+function s0(root){
+  root.innerHTML='<section class="panel stack">'+
+    '<p class="kicker">Wiskunde · klas 1 vmbo basis</p>'+
+    '<h1>Ruimtefiguren en grensvlakken</h1>'+
+    '<div class="heroimgs">'+fig('kubus')+fig('bol')+fig('cilinder')+fig('piramide')+'</div>'+
+    '<p>Je leest, je luistert en je doet kleine opdrachten. De les duurt ongeveer 30 minuten.</p>'+
+    '<ol class="plan"><li><b>Ruimtefiguren</b><span>± 12 minuten</span></li><li><b>Grensvlakken</b><span>± 10 minuten</span></li><li><b>Waar of niet waar</b><span>± 3 minuten</span></li><li><b>Zoek in de klas</b><span>± 5 minuten</span></li></ol>'+
+    '<div class="field"><label for="naam">Hoe heet je? (mag leeg)</label><input type="text" id="naam" maxlength="30" autocomplete="off"></div>'+
+    listenBtn('Welkom bij de les over ruimtefiguren en grensvlakken. Je gaat leren welke ruimtefiguren er zijn en wat grensvlakken zijn. Tik op de knop Lees voor als je een tekst wilt horen. Zet je geluid aan.')+
+    '<p class="muted">Zet je geluid aan. Tik op <b>Lees voor</b> om een tekst te horen.</p>'+
+    '<div class="foot"><span></span><button class="go" type="button" data-next>Start de les</button></div></section>';
+  maybeAuto('Welkom bij de les over ruimtefiguren en grensvlakken.');
+}
+function maybeAuto(t){if(state.auto)say(t,null)}
+
+function s1(root){
+  var seen={};var count=0;
+  root.innerHTML='<section class="panel stack"><h2>Ruimtefiguren</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span><p>Een <b>balk, kubus, piramide, bol, cilinder en kegel</b> zijn voorbeelden van wiskundige <b>ruimtefiguren</b>.</p>'+
+    listenBtn('Een balk, kubus, piramide, bol, cilinder en kegel zijn voorbeelden van wiskundige ruimtefiguren.')+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Tik op alle zes de figuren. Je ziet ook een voorwerp dat erop lijkt.</p>'+
+    '<div class="tiles">'+FIGS.map(function(f){return '<button class="opt tile" type="button" data-f="'+f.id+'">'+fig(f.id,null,f.naam)+'<span class="nm">'+f.naam+'</span></button>'}).join('')+'</div>'+
+    '<div class="detail" id="detail"><p class="muted">Tik op een figuur hierboven.</p></div></div>'+
+    '<div class="foot"><span class="count">Bekeken: <b id="cnt">0</b> van 6</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  root.querySelectorAll('[data-f]').forEach(function(b){
+    b.onclick=function(){
+      var f=figById(b.dataset.f);
+      if(!seen[f.id]){seen[f.id]=1;count++;b.classList.add('seen');$('#cnt').textContent=count;if(count===6)$('#nx').disabled=false}
+      var t=f.naam+'. '+f.tekst;
+      $('#detail').innerHTML='<div class="pair"><figure>'+fig(f.id,null,f.naam)+'<figcaption>'+f.naam+'</figcaption></figure><figure>'+obj(f.obj)+'<figcaption>'+OBJNAME[f.obj]+'</figcaption></figure></div><h3>De '+f.naam+'</h3><p>'+f.tekst+'</p>'+listenBtn(t,'Nog een keer');
+      say(t,null);
+    };
+  });
+}
+
+function s2(root){
+  root.innerHTML='<section class="panel stack"><h2>Oefening: tik op de figuur</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(FIGS),cls:'figs',
+    stim:function(){return ''},
+    q:function(it){return 'Tik op de <b>'+it.naam+'</b>.'},
+    say:function(it){return 'Tik op de '+it.naam+'.'},
+    opts:function(){return shuffle(FIGS).map(function(f){return {id:f.id,html:fig(f.id,null,f.naam)}})},
+    correct:function(it){return it.id},
+    wrong:function(it,id){return 'Nee, dat is een '+figById(id).naam+'.'},
+    explain:function(it){return 'Goed! Dit is een '+it.naam+'.'}
+  },next);
+}
+
+function s3(root){
+  root.innerHTML='<section class="panel stack"><h2>Oefening: wat is het?</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(FIGS),cls:'words',
+    stim:function(it){return '<div class="stim">'+obj(it.obj)+'</div>'},
+    q:function(it){return 'Welk ruimtefiguur lijkt op <b>'+OBJTXT[it.obj]+'</b>?'},
+    say:function(it){return 'Welk ruimtefiguur lijkt op '+OBJTXT[it.obj]+'?'},
+    opts:function(it){
+      var others=shuffle(FIGS.filter(function(f){return f.id!==it.id})).slice(0,3);
+      return shuffle([it].concat(others)).map(function(f){return {id:f.id,html:'<span>'+f.naam+'</span>'}});
+    },
+    correct:function(it){return it.id},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return it.tekst}
+  },next);
+}
+
+var GV4=[{f:'cilinder',hl:'top',v:'cirkel'},{f:'piramide',hl:'tri',v:'driehoek'},{f:'balk',hl:'front',v:'rechthoek'},{f:'kubus',hl:'right',v:'vierkant'}];
+function s4(root){
+  var seen={};var count=0;
+  var t='De vlakken van een ruimtefiguur noem je grensvlakken. Een grensvlak kan verschillende vormen hebben. Het grensvlak kan een vierkant, een rechthoek, een driehoek of een cirkel zijn.';
+  root.innerHTML='<section class="panel stack"><h2>Grensvlakken</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>De vlakken van een ruimtefiguur noem je <b>grensvlakken</b>.</p><p>Een grensvlak kan verschillende vormen hebben.</p><p>Het grensvlak kan een vierkant, een rechthoek, een driehoek of een cirkel zijn.</p>'+
+    listenBtn(t)+
+    '<div class="vormen4">'+['vierkant','rechthoek','driehoek','cirkel'].map(function(v){return '<div class="vf">'+flat(v)+'<span>'+v+'</span></div>'}).join('')+'</div></div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Welke vorm hebben de gekleurde grensvlakken? Tik op een figuur en kijk.</p>'+
+    '<div class="tiles two">'+GV4.map(function(g,k){return '<button class="opt gtile" type="button" data-k="'+k+'">'+fig(g.f,g.hl,'de '+g.f)+'<span class="ans" id="a'+k+'">Tik om te zien</span></button>'}).join('')+'</div></div>'+
+    '<div class="foot"><span class="count">Bekeken: <b id="cnt">0</b> van 4</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  root.querySelectorAll('[data-k]').forEach(function(b){
+    b.onclick=function(){
+      var k=+b.dataset.k,g=GV4[k];
+      if(!seen[k]){seen[k]=1;count++;b.classList.add('seen');$('#cnt').textContent=count;if(count===4)$('#nx').disabled=false}
+      $('#a'+k).innerHTML=flat(g.v)+'<b>'+g.v+'</b>';
+      say('Het gekleurde grensvlak van de '+g.f+' is een '+g.v+'.',null);
+    };
+  });
+  maybeAuto(t);
+}
+
+var GV=[
+  {f:'kubus',hl:'front',v:'vierkant'},{f:'balk',hl:'front',v:'rechthoek'},{f:'piramide',hl:'tri',v:'driehoek'},
+  {f:'cilinder',hl:'top',v:'cirkel'},{f:'kubus',hl:'right',v:'vierkant'},{f:'balk',hl:'right',v:'rechthoek'}
+];
+function s5(root){
+  root.innerHTML='<section class="panel stack"><h2>Oefening: welke vorm?</h2><div id="q"></div></section>';
+  var VORMEN=['cirkel','driehoek','rechthoek','vierkant'];
+  quiz($('#q',root),{
+    items:shuffle(GV),cls:'vormen',
+    stim:function(it){return '<div class="stim">'+fig(it.f,it.hl,'de '+it.f+' met een gekleurd grensvlak')+'</div>'},
+    q:function(){return 'Welke vorm heeft het gekleurde grensvlak?'},
+    say:function(){return 'Welke vorm heeft het gekleurde grensvlak?'},
+    opts:function(){return shuffle(VORMEN).map(function(v){return {id:v,html:flat(v)+'<span>'+v+'</span>'}})},
+    correct:function(it){return it.v},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return 'Het gekleurde grensvlak van de '+it.f+' is een '+it.v+'.'+(it.hl==='right'?' Je ziet het schuin, maar het is echt een '+it.v+'.':'')}
+  },next);
+}
+
+var TF=[
+  {s:'Een dobbelsteen lijkt op een kubus.',a:'w',e:'Klopt. Een dobbelsteen is een kubus.'},
+  {s:'Een voetbal lijkt op een cilinder.',a:'n',e:'Nee. Een voetbal is een bol.'},
+  {s:'De vlakken van een ruimtefiguur noem je grensvlakken.',a:'w',e:'Klopt. Dat zijn de grensvlakken.'},
+  {s:'Een blikje lijkt op een balk.',a:'n',e:'Nee. Een blikje is een cilinder.'},
+  {s:'Een grensvlak van een piramide kan een driehoek zijn.',a:'w',e:'Klopt. De zijkanten van een piramide zijn driehoeken.'},
+  {s:'De voorkant van een balk is een cirkel.',a:'n',e:'Nee. De voorkant van een balk is een rechthoek.'}
+];
+function s6(root){
+  root.innerHTML='<section class="panel stack"><h2>Waar of niet waar</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(TF),cls:'tf',
+    stim:function(){return ''},
+    q:function(it){return it.s},
+    say:function(it){return it.s},
+    opts:function(){return [{id:'w',html:'Waar'},{id:'n',html:'Niet waar'}]},
+    correct:function(it){return it.a},
+    wrong:function(){return 'Nee, dat klopt niet.'},
+    explain:function(it){return it.e}
+  },next);
+}
+
+function s7(root){
+  var rows=[0,1,2].map(function(n){return '<div class="krow"><label for="k'+n+'">Ding '+(n+1)+'</label><input type="text" id="k'+n+'" maxlength="40" autocomplete="off" placeholder="Wat zie je? Bijvoorbeeld: bal"><select id="s'+n+'" aria-label="Ruimtefiguur van ding '+(n+1)+'"><option value="">Kies een ruimtefiguur</option>'+FIGS.map(function(f){return '<option value="'+f.id+'">'+f.naam+'</option>'}).join('')+'</select></div>'}).join('');
+  var t='Kijk om je heen in de klas. Zoek drie dingen die op een ruimtefiguur lijken. Schrijf op wat je ziet en kies het ruimtefiguur.';
+  root.innerHTML='<section class="panel stack"><h2>Zoek in de klas</h2><p>Kijk om je heen. Zoek <b>drie dingen</b> die op een ruimtefiguur lijken. Schrijf op wat je ziet en kies het ruimtefiguur.</p>'+listenBtn(t)+
+    '<div class="klas">'+rows+'</div>'+
+    '<div class="foot"><span class="count" id="kc">Vul alle drie de dingen in.</span><button class="go" type="button" data-next id="nx" disabled>Klaar</button></div></section>';
+  function check(){
+    var ok=[0,1,2].every(function(n){return $('#k'+n).value.trim()&&$('#s'+n).value});
+    $('#nx').disabled=!ok;
+    $('#kc').textContent=ok?'Goed gedaan! Laat het aan je docent zien.':'Vul alle drie de dingen in.';
+  }
+  [0,1,2].forEach(function(n){$('#k'+n).oninput=check;$('#s'+n).onchange=check});
+  $('#nx').addEventListener('click',function(){state.score+=3;head()});
+  maybeAuto(t);
+}
+
+function star(on){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z" fill="'+(on?'var(--sun)':'var(--line)')+'" stroke="'+(on?'#b88400':'var(--muted)')+'" stroke-width="1.2" stroke-linejoin="round"/></svg>'}
+function s8(root){
+  var pct=state.score/MAX,stars=pct>=.85?3:pct>=.6?2:1;
+  var nm=state.name?', '+esc(state.name):'';
+  var say1='Goed gedaan'+(state.name?', '+state.name:'')+'! Je hebt '+state.score+' van de '+MAX+' punten.';
+  root.innerHTML='<section class="panel stack center"><h2>Goed gedaan'+nm+'!</h2>'+
+    '<div class="stars" role="img" aria-label="'+stars+' van de 3 sterren">'+[1,2,3].map(function(n){return star(n<=stars)}).join('')+'</div>'+
+    '<p class="big">Je hebt <b>'+state.score+'</b> van de <b>'+MAX+'</b> punten.</p>'+listenBtn(say1)+
+    '<div class="theory"><span class="tab">Dit heb je geleerd</span>'+
+    '<p>Een <b>balk, kubus, piramide, bol, cilinder en kegel</b> zijn ruimtefiguren.</p>'+
+    '<p>De vlakken van een ruimtefiguur heten <b>grensvlakken</b>. Een grensvlak kan een vierkant, rechthoek, driehoek of cirkel zijn.</p>'+
+    '<div class="recap">'+FIGS.map(function(f){return '<div>'+fig(f.id,null,f.naam)+f.naam+'</div>'}).join('')+'</div></div>'+
+    '<button class="go" type="button" id="again">Begin opnieuw</button></section>';
+  $('#again').onclick=function(){state.score=0;go(0)};
+  maybeAuto(say1);
+}
+
+var STEPS=[
+  {name:'Start',fn:s0},
+  {name:'Ruimtefiguren',fn:s1},
+  {name:'Oefening: tik op de figuur',fn:s2},
+  {name:'Oefening: wat is het?',fn:s3},
+  {name:'Grensvlakken',fn:s4},
+  {name:'Oefening: welke vorm?',fn:s5},
+  {name:'Waar of niet waar',fn:s6},
+  {name:'Zoek in de klas',fn:s7},
+  {name:'Klaar',fn:s8}
+];
+function go(i){
+  stopSpeech();state.i=i;head();
+  STEPS[i].fn($('#stage'));
+  $('#top').scrollIntoView();
+  $('#stage').focus({preventScroll:true});
+}
+
+document.addEventListener('click',function(e){
+  var l=e.target.closest('.listen');
+  if(l){say(l.dataset.say,l);return}
+  var nx=e.target.closest('[data-next]');
+  if(nx&&!nx.disabled){var nm=$('#naam');if(nm)state.name=nm.value.trim();go(state.i+1)}
+});
+$('#auto').onchange=function(e){state.auto=e.target.checked;if(!state.auto)stopSpeech()};
+
+go(0);
+})();
+</script>
+
+</html>

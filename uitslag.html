@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="nl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Uitslag, ribben en aanzichten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: één smalle kolom, één stap per scherm. Blauw = theorie, groen = voorbeeld, roze/groen/geel = kleuren van de grensvlakken, oranje = geteld. */
+:root{
+  --bg:#eef5ff; --surface:#ffffff; --ink:#10253f; --muted:#4a5f7a; --line:#c9d9ee;
+  --blue:#1c6df2; --blue-d:#1450b8; --on-blue:#ffffff; --blue-soft:#dcebff;
+  --teal:#0aa384; --teal-d:#067a63; --on-teal:#ffffff; --teal-soft:#d3f3ea;
+  --hot:#d9480f; --hot-soft:#ffe6da;
+  --sun:#ffc531; --bad:#c2381f; --bad-soft:#ffe2dc;
+  --fig:#b7c9f2; --figline:#1d4f9c;
+  --c1:#ef9aa8; --c2:#7fcfbf; --c3:#ffd98a;
+  --cube-top:#ffe3a3; --cube-front:#f6c35c; --cube-right:#e0a032; --floor:#cfe0f7;
+  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+    --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+    --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+    --hot:#ff9a6b; --hot-soft:#4a2616;
+    --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+    --fig:#3d5a94; --figline:#a9c4f5;
+    --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
+    --cube-top:#e3b552; --cube-front:#b9862a; --cube-right:#8a6119; --floor:#223a5e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+  --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+  --teal:#2fd1ac; --teal-d:#2fd1ac; --on-teal:#062b24; --teal-soft:#10403a;
+  --hot:#ff9a6b; --hot-soft:#4a2616;
+  --sun:#ffd25c; --bad:#ff8a73; --bad-soft:#4a2019;
+  --fig:#3d5a94; --figline:#a9c4f5;
+  --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
+  --cube-top:#e3b552; --cube-front:#b9862a; --cube-right:#8a6119; --floor:#223a5e;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.55;
+  padding-block:16px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.app{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.1rem,7vw,3.2rem)}
+h2{font-size:clamp(1.6rem,5vw,2.1rem)}
+h3{font-size:1.5rem}
+p{margin:0}
+b{font-weight:800}
+.muted{color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.brand{font:700 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:.95rem;font-weight:600}
+.tools label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.tools input{width:20px;height:20px;accent-color:var(--blue)}
+.pts{background:var(--sun);color:#3d2d00;border-radius:99px;padding:2px 14px;font-weight:800}
+.prog{height:12px;background:var(--line);border-radius:99px;overflow:hidden}
+#bar{display:block;height:100%;width:0;background:var(--teal);transition:width .4s}
+.stepname{font-size:.95rem;font-weight:600;color:var(--muted)}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.center{align-items:center;text-align:center}
+#stage{outline:none}
+#stage>*{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.theory,.example{position:relative;border:2px solid;border-radius:6px 14px 14px 14px;padding:46px 18px 18px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;width:100%}
+.theory{background:var(--blue-soft);border-color:var(--blue)}
+.example{background:var(--teal-soft);border-color:var(--teal-d);align-items:stretch}
+.tab{position:absolute;top:-2px;left:-2px;padding:3px 16px;border-radius:6px 0 12px 0;font:700 .95rem var(--font-display);letter-spacing:.05em;background:var(--blue);color:var(--on-blue)}
+.example .tab{background:var(--teal-d);color:var(--on-teal)}
+.theory p{text-align:left}
+.theory b{color:var(--blue)}
+
+.listen{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--blue);background:var(--surface);color:var(--blue);border-radius:99px;padding:6px 16px 6px 12px;font-weight:800;font-size:.95rem;cursor:pointer}
+.listen svg{width:22px;height:22px;fill:currentColor}
+.listen.playing{background:var(--blue);color:var(--on-blue)}
+.listen{align-self:flex-start}
+.center .listen{align-self:center}
+.nosynth .listen{display:none}
+
+.go{border:0;background:var(--blue);color:var(--on-blue);border-radius:12px;padding:12px 26px;font:700 1.25rem var(--font-display);cursor:pointer;box-shadow:0 4px 0 var(--blue-d)}
+.go:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--blue-d)}
+.go:disabled{opacity:.4;cursor:not-allowed}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font-weight:700;color:var(--muted)}
+
+.opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:58px;padding:10px 14px;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:12px;box-shadow:0 3px 0 var(--line);cursor:pointer;font-weight:700;min-width:0;text-align:center}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt:disabled{cursor:default}
+.opt:disabled:not(.ok):not(.no){opacity:.55}
+.opt.ok{border-color:var(--teal-d);background:var(--teal-soft);box-shadow:0 3px 0 var(--teal-d)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opts{display:grid;gap:10px}
+.opts.words{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.opts.words .opt{font-size:1.1rem}
+
+.chip{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:6px 18px;font:700 1.1rem var(--font-display);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.chip .sw{width:22px;height:22px;border-radius:6px;border:2px solid var(--figline)}
+.chip[aria-pressed="true"] .sw{border-color:var(--on-blue)}
+.row2{display:flex;gap:10px;flex-wrap:wrap}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;background:var(--surface);border:2px solid var(--line);border-radius:12px;cursor:pointer;text-align:center;font-weight:700;box-shadow:0 3px 0 var(--line);min-width:0}
+.card.seen{border-color:var(--teal-d)}
+.card.seen::after{content:"\2713";position:absolute;top:4px;right:10px;color:var(--teal-d);font-weight:800}
+.card .res{font-weight:700;min-height:3.1em}
+
+.net{display:block;width:100%;height:auto;margin:0 auto}
+.net rect{stroke:var(--figline);stroke-width:2;stroke-linejoin:round}
+.net .ia{cursor:pointer}
+.net .ia:focus-visible{outline:none;stroke:var(--ink);stroke-width:4}
+.stimbox{display:flex;justify-content:center}
+.stimbox svg{max-width:300px}
+
+.svgbox{display:flex;justify-content:center;padding:6px 0}
+.svgbox svg{display:block;width:100%;height:auto}
+.iso .fl{fill:var(--floor);stroke:var(--figline);stroke-width:1.5}
+.iso .t{fill:var(--cube-top)}
+.iso .f{fill:var(--cube-front)}
+.iso .r{fill:var(--cube-right)}
+.iso .t,.iso .f,.iso .r{stroke:var(--figline);stroke-width:1.2;stroke-linejoin:round}
+.iso text{fill:var(--muted);font:700 12px var(--font-body)}
+.flat rect{fill:var(--c3);stroke:var(--figline);stroke-width:2}
+.pair2{display:flex;gap:16px;justify-content:center;align-items:flex-end;flex-wrap:wrap}
+.pair2 figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.pair2 figcaption{font-size:.9rem;font-weight:600;color:var(--muted)}
+.pair2 .a{flex:0 1 260px}
+.pair2 .b{flex:0 1 150px}
+.say{background:var(--surface);border:2px dashed var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+
+.wire{display:block;width:100%;height:auto;max-width:360px;margin:0 auto}
+.wire .ev{stroke:var(--figline);stroke-width:6;stroke-linecap:round;fill:none}
+.wire .he{stroke:transparent;stroke-width:26;stroke-linecap:round;fill:none;pointer-events:stroke;cursor:pointer}
+.wire .vv{fill:var(--surface);stroke:var(--figline);stroke-width:4}
+.wire .hv{fill:transparent;pointer-events:all;cursor:pointer}
+.wire.m-r .hv{pointer-events:none}
+.wire.m-v .he{pointer-events:none}
+.wire .done{stroke:var(--hot)}
+.wire .vv.done{fill:var(--hot-soft);stroke:var(--hot)}
+.wire .lab{fill:var(--hot);font:800 17px var(--font-display);text-anchor:middle;dominant-baseline:central;pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:5px}
+.wire .he:focus-visible,.wire .hv:focus-visible{outline:none;stroke:var(--ink);stroke-width:4}
+
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.dots span{display:inline-block;width:12px;height:12px;margin-left:5px;border-radius:50%;background:var(--line)}
+.dots .d{background:var(--teal)}
+.dots .c{background:var(--blue)}
+.qcard{display:flex;flex-direction:column;gap:14px}
+.qtext{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.q{font:700 1.35rem/1.25 var(--font-display)}
+.fb{min-height:1.5em;font-weight:800}
+.fb.good{color:var(--teal-d)}
+.fb.bad{color:var(--bad)}
+.after{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.expl{background:var(--blue-soft);border-radius:10px;padding:10px 14px}
+
+.kicker{font:700 1rem var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--teal-d)}
+.heroimgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:center;max-width:520px}
+.plan{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:6px}
+.plan li::marker{font-weight:800;color:var(--blue)}
+.plan li{padding-left:6px}
+.plan span{color:var(--muted);font-size:.95rem;margin-left:8px}
+.field{display:flex;flex-direction:column;gap:4px;max-width:340px}
+.field label{font-weight:700}
+input[type=text]{background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+
+.stars{display:flex;gap:8px}
+.stars svg{width:56px;height:56px;animation:pop .5s backwards}
+.stars svg:nth-child(2){animation-delay:.15s}
+.stars svg:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)}}
+.big{font-size:1.3rem}
+.recap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;align-items:end}
+.recap div{display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:700;font-size:.9rem;text-align:center}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app">
+  <header class="top" id="top">
+    <span class="brand">Wiskunde · klas 1</span>
+    <div class="tools">
+      <label for="auto"><input type="checkbox" id="auto"> Lees alles voor</label>
+      <span class="pts">Punten <span id="pts">0</span></span>
+    </div>
+  </header>
+  <div class="prog" role="progressbar" aria-label="Voortgang van de les" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="bar"></span></div>
+  <div class="stepname" id="stepname"></div>
+  <main id="stage" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+var shuffle=function(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a};
+var MAX=21;
+var state={i:0,score:0,name:'',auto:false};
+
+/* ---------- Voorlezen ---------- */
+var synth=('speechSynthesis' in window)?window.speechSynthesis:null;
+var voice=null,active=null,token=0;
+if(!synth)$('#app').classList.add('nosynth');
+function pickVoice(){if(!synth)return;var v=synth.getVoices();voice=v.find(function(x){return /^nl[-_]NL$/i.test(x.lang)})||v.find(function(x){return /^nl/i.test(x.lang)})||null}
+if(synth){pickVoice();if('onvoiceschanged' in synth)synth.onvoiceschanged=pickVoice}
+function clearActive(){if(active){active.classList.remove('playing');active=null}}
+function stopSpeech(){token++;if(synth)synth.cancel();clearActive()}
+function say(text,btn){
+  if(!synth)return;
+  var same=btn&&active===btn;
+  stopSpeech();
+  if(same)return;
+  var my=++token;
+  var u=new SpeechSynthesisUtterance(text);
+  u.lang='nl-NL';if(voice)u.voice=voice;u.rate=.9;
+  u.onend=u.onerror=function(){if(token===my)clearActive()};
+  if(btn){active=btn;btn.classList.add('playing')}
+  synth.speak(u);
+}
+function maybeAuto(t){if(state.auto)say(t,null)}
+var SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function listenBtn(text,label){return '<button class="listen" type="button" data-say="'+esc(text)+'">'+SPK+'<span>'+(label||'Lees voor')+'</span></button>'}
+
+/* ---------- Uitslagen ---------- */
+function cells(list){return list.map(function(c){return {x:c[0],y:c[1],w:1,h:1,g:0}})}
+var K1=cells([[0,1],[1,1],[2,1],[3,1],[1,0],[1,2]]);
+var K2=cells([[0,1],[1,1],[2,1],[3,1],[2,0],[0,2]]);
+var K3=cells([[0,0],[1,0],[1,1],[2,1],[2,2],[3,2]]);
+/* Balk met lengte L, breedte W, hoogte H. Vier zijvlakken in een rij, boven- en onderkant ertegen. */
+function balkNet(L,W,H,tv,bv,rot){
+  var ws=[L,W,L,W],xs=[0,L,L+W,2*L+W],f=[];
+  for(var i=0;i<4;i++)f.push({x:xs[i],y:W,w:ws[i],h:H,g:i%2});
+  f.push({x:xs[tv],y:0,w:L,h:W,g:2});
+  f.push({x:xs[bv],y:W+H,w:L,h:W,g:2});
+  return rot?f.map(function(a){return {x:a.y,y:a.x,w:a.h,h:a.w,g:a.g}}):f;
+}
+var B1=balkNet(3,2,1,0,0,false);
+var B2=balkNet(3,2,1,2,0,false);
+var B3=balkNet(2,3,1,2,0,true);
+var PAL=['var(--c1)','var(--c2)','var(--c3)'],PALN=['roze','groen','geel'];
+function groupColors(kind,faces){
+  var BG=['var(--c2)','var(--c3)','var(--c1)'];
+  return faces.map(function(f){return kind==='kubus'?'var(--c1)':BG[f.g]});
+}
+function netSvg(faces,colors,interactive){
+  var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+  faces.forEach(function(f){minx=Math.min(minx,f.x);miny=Math.min(miny,f.y);maxx=Math.max(maxx,f.x+f.w);maxy=Math.max(maxy,f.y+f.h)});
+  var W=maxx-minx,H=maxy-miny,u=Math.min(40,300/Math.max(W,H)),pad=3,vw=W*u+2*pad,vh=H*u+2*pad;
+  var r=faces.map(function(f,i){
+    var fill=colors&&colors[i]?colors[i]:'var(--fig)';
+    return '<rect x="'+((f.x-minx)*u+pad)+'" y="'+((f.y-miny)*u+pad)+'" width="'+(f.w*u)+'" height="'+(f.h*u)+'" fill="'+fill+'"'+
+      (interactive?' class="ia" data-i="'+i+'" tabindex="0" role="button" aria-label="Vlak '+(i+1)+'"':'')+'/>';
+  }).join('');
+  return '<svg class="net" viewBox="0 0 '+vw+' '+vh+'" style="max-width:'+Math.round(vw)+'px" role="img" aria-label="Een uitslag met zes grensvlakken">'+r+'</svg>';
+}
+
+/* ---------- Draadmodel van een balk ---------- */
+var WA=3,WB=2,WC=1.3;
+function wire(interactive){
+  var s=42,c=.866;
+  function P(x,y,z){return [(x+y)*c*s,-(z+(y-x)*.5)*s]}
+  var V=[],i,k;
+  for(i=0;i<8;i++)V.push(P((i&1)*WA,((i>>1)&1)*WB,((i>>2)&1)*WC));
+  var E=[];
+  for(i=0;i<8;i++)for(k=0;k<3;k++){var b=1<<k;if(!(i&b))E.push([i,i|b])}
+  var xs=V.map(function(p){return p[0]}),ys=V.map(function(p){return p[1]});
+  var minx=Math.min.apply(null,xs)-30,maxx=Math.max.apply(null,xs)+30,miny=Math.min.apply(null,ys)-40,maxy=Math.max.apply(null,ys)+34;
+  var out='<svg class="wire m-r" viewBox="'+minx+' '+miny+' '+(maxx-minx)+' '+(maxy-miny)+'" role="img" aria-label="Draadmodel van een balk met alle ribben en hoekpunten">';
+  E.forEach(function(e,n){
+    var a=V[e[0]],bb=V[e[1]];
+    out+='<line class="ev" id="ev'+n+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+bb[0]+'" y2="'+bb[1]+'"/>';
+  });
+  if(interactive)E.forEach(function(e,n){
+    var a=V[e[0]],bb=V[e[1]];
+    out+='<line class="he" data-e="'+n+'" tabindex="0" role="button" aria-label="Ribbe '+(n+1)+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+bb[0]+'" y2="'+bb[1]+'"/>';
+  });
+  V.forEach(function(p,n){out+='<circle class="vv" id="vv'+n+'" cx="'+p[0]+'" cy="'+p[1]+'" r="8"/>'});
+  if(interactive)V.forEach(function(p,n){out+='<circle class="hv" data-v="'+n+'" tabindex="0" role="button" aria-label="Hoekpunt '+(n+1)+'" cx="'+p[0]+'" cy="'+p[1]+'" r="20"/>'});
+  out+='<g id="labs"></g></svg>';
+  wire.V=V;wire.E=E;
+  return out;
+}
+
+/* ---------- Bouwwerken en aanzichten ---------- */
+var STR=[[[3,1,0],[0,1,2]],[[1,2,2],[1,0,3]],[[1,0,2],[3,2,2]]];
+function iso(h){
+  var gy=h.length,gx=h[0].length,s=22,c=.866;
+  function P(x,y,z){return [(x+y)*c*s,-(z+(y-x)*.5)*s]}
+  function poly(cls,pts){return '<polygon class="'+cls+'" points="'+pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ')+'"/>'}
+  var all=[],cubes=[],x,y,z;
+  for(y=0;y<gy;y++)for(x=0;x<gx;x++)for(z=0;z<h[y][x];z++)cubes.push({x:x,y:y,z:z});
+  cubes.sort(function(a,b){return (a.x-a.y+a.z)-(b.x-b.y+b.z)});
+  var floor=[P(0,0,0),P(gx,0,0),P(gx,gy,0),P(0,gy,0)];
+  all=all.concat(floor);
+  var body=poly('fl',floor);
+  cubes.forEach(function(q){
+    var X=q.x,Y=q.y,Z=q.z;
+    var top=[P(X,Y,Z+1),P(X+1,Y,Z+1),P(X+1,Y+1,Z+1),P(X,Y+1,Z+1)];
+    var fr=[P(X,Y,Z),P(X+1,Y,Z),P(X+1,Y,Z+1),P(X,Y,Z+1)];
+    var ri=[P(X+1,Y,Z),P(X+1,Y+1,Z),P(X+1,Y+1,Z+1),P(X+1,Y,Z+1)];
+    all=all.concat(top,fr,ri);
+    body+=poly('f',fr)+poly('r',ri)+poly('t',top);
+  });
+  var xs=all.map(function(p){return p[0]}),ys=all.map(function(p){return p[1]});
+  var minx=Math.min.apply(null,xs)-52,maxx=Math.max.apply(null,xs)+62,miny=Math.min.apply(null,ys)-8,maxy=Math.max.apply(null,ys)+34;
+  var m1=P(gx/2,0,0),m2=P(gx,gy/2,0);
+  body+='<text x="'+(m1[0]-12)+'" y="'+(m1[1]+22)+'" text-anchor="middle">voorkant</text>'+
+        '<text x="'+(m2[0]+10)+'" y="'+(m2[1]+22)+'" text-anchor="start">rechterkant</text>';
+  return '<svg class="iso" viewBox="'+minx.toFixed(1)+' '+miny.toFixed(1)+' '+(maxx-minx).toFixed(1)+' '+(maxy-miny).toFixed(1)+'" role="img" aria-label="Een bouwwerk van blokken, gezien van schuin voor">'+body+'</svg>';
+}
+function maxOf(a){return Math.max.apply(null,a)}
+function colsToRows(cm){var H=maxOf(cm),rows=[];for(var r=0;r<H;r++){var z=H-1-r;rows.push(cm.map(function(v){return v>z}))}return rows}
+function viewRows(h,v){
+  var gy=h.length,gx=h[0].length,x,y;
+  if(v==='voor'){var a=[];for(x=0;x<gx;x++){var m=0;for(y=0;y<gy;y++)m=Math.max(m,h[y][x]);a.push(m)}return {rows:colsToRows(a),cm:a}}
+  if(v==='zij'){var b=[];for(y=0;y<gy;y++){var n=0;for(x=0;x<gx;x++)n=Math.max(n,h[y][x]);b.push(n)}return {rows:colsToRows(b),cm:b}}
+  var rows=[];for(var r=0;r<gy;r++){y=gy-1-r;rows.push(h[y].map(function(q){return q>0}))}
+  return {rows:rows,cm:null};
+}
+function flatSvg(rows,label){
+  var u=40,pad=3,m=rows[0].length,n=rows.length,r='';
+  rows.forEach(function(row,ri){row.forEach(function(on,ci){if(on)r+='<rect x="'+(ci*u+pad)+'" y="'+(ri*u+pad)+'" width="'+u+'" height="'+u+'"/>'})});
+  var vw=m*u+2*pad;
+  return '<svg class="flat" viewBox="0 0 '+vw+' '+(n*u+2*pad)+'" style="width:100%;max-width:'+vw+'px" role="img" aria-label="'+esc(label||'Een aanzicht')+'">'+r+'</svg>';
+}
+var VN={voor:'Vooraanzicht',zij:'Rechter zijaanzicht',boven:'Bovenaanzicht'};
+function viewText(h,v){
+  var d=viewRows(h,v);
+  var hs=function(a){return a.join(', ').replace(/, ([^,]*)$/,' en $1')};
+  if(v==='voor')return 'Je kijkt van voren naar het bouwwerk. Van links naar rechts zie je kolommen van '+hs(d.cm)+' blokken hoog.';
+  if(v==='zij')return 'Je kijkt vanaf de rechterkant. Links in het plaatje zit de voorkant. Je ziet kolommen van '+hs(d.cm)+' blokken hoog.';
+  return 'Je kijkt van boven. Je ziet alle plekken waar blokken staan. Onderin het plaatje zit de voorkant.';
+}
+
+/* ---------- Vragenmotor ---------- */
+function head(){
+  $('#pts').textContent=state.score;
+  $('#bar').style.width=(state.i/(STEPS.length-1)*100)+'%';
+  $('.prog').setAttribute('aria-valuenow',Math.round(state.i/(STEPS.length-1)*100));
+  $('#stepname').textContent='Stap '+(state.i+1)+' van '+STEPS.length+' · '+STEPS[state.i].name;
+}
+function quiz(el,cfg,done){
+  var N=cfg.items.length,n=0;
+  function show(){
+    var it=cfg.items[n],tries=0,locked=false;
+    var dots=cfg.items.map(function(_,k){return '<span class="'+(k<n?'d':k===n?'c':'')+'"></span>'}).join('');
+    el.innerHTML='<div class="qhead"><span>Vraag '+(n+1)+' van '+N+'</span><span class="dots" aria-hidden="true">'+dots+'</span></div>'+
+      '<div class="qcard"><div class="stimbox">'+cfg.stim(it)+'</div>'+
+      '<div class="qtext"><p class="q">'+cfg.q(it)+'</p>'+listenBtn(cfg.say(it),'Luister')+'</div>'+
+      '<div class="opts '+cfg.cls+'">'+cfg.opts(it).map(function(o){return '<button class="opt" type="button" data-id="'+esc(o.id)+'">'+o.html+'</button>'}).join('')+'</div>'+
+      '<p class="fb" role="status"></p><div class="after"></div></div>';
+    var fb=$('.fb',el),after=$('.after',el);
+    el.querySelectorAll('.opt').forEach(function(b){
+      b.onclick=function(){
+        if(locked||b.disabled)return;
+        var id=b.dataset.id;
+        if(id===cfg.correct(it)){
+          locked=true;b.classList.add('ok');
+          el.querySelectorAll('.opt').forEach(function(x){if(x!==b)x.disabled=true});
+          if(tries===0){state.score++;head();fb.textContent='Goed zo! Je krijgt 1 punt.'}
+          else{fb.textContent='Goed! Nu weet je het.'}
+          fb.className='fb good';
+          if(cfg.reveal)$('.stimbox',el).innerHTML=cfg.reveal(it);
+          after.innerHTML='<p class="expl">'+cfg.explain(it)+'</p><button class="go" type="button" id="nq">'+(n<N-1?'Volgende vraag':'Klaar, verder')+'</button>';
+          $('#nq',el).onclick=function(){if(n<N-1){n++;show();$('#top').scrollIntoView()}else{done()}};
+        }else{
+          tries++;b.disabled=true;b.classList.add('no');
+          fb.className='fb bad';
+          fb.textContent=(cfg.wrong?cfg.wrong(it,id):'Nog niet goed.')+' Probeer het nog een keer.';
+        }
+      };
+    });
+    if(state.auto)say(cfg.say(it),null);
+  }
+  show();
+}
+var next=function(){go(state.i+1)};
+
+/* ---------- Stappen ---------- */
+function s0(root){
+  root.innerHTML='<section class="panel stack">'+
+    '<p class="kicker">Wiskunde · klas 1 vmbo basis</p>'+
+    '<h1>Uitslag, ribben en aanzichten</h1>'+
+    '<div class="heroimgs">'+netSvg(K1,groupColors('kubus',K1),false)+wire(false)+iso(STR[0])+'</div>'+
+    '<p>Je leest, je luistert en je doet kleine opdrachten. De les duurt ongeveer 30 minuten.</p>'+
+    '<ol class="plan"><li><b>Uitslag van kubus en balk</b><span>± 13 minuten</span></li><li><b>Ribben en hoekpunten</b><span>± 8 minuten</span></li><li><b>Aanzichten</b><span>± 9 minuten</span></li></ol>'+
+    '<div class="field"><label for="naam">Hoe heet je? (mag leeg)</label><input type="text" id="naam" maxlength="30" autocomplete="off"></div>'+
+    listenBtn('Welkom bij de les over uitslagen, ribben en aanzichten. Je gaat leren hoe je een kubus en een balk herkent in een uitslag, wat ribben en hoekpunten zijn en wat een aanzicht is. Tik op de knop Lees voor als je een tekst wilt horen. Zet je geluid aan.')+
+    '<p class="muted">Zet je geluid aan. Tik op <b>Lees voor</b> om een tekst te horen.</p>'+
+    '<div class="foot"><span></span><button class="go" type="button" data-next>Start de les</button></div></section>';
+  maybeAuto('Welkom bij de les over uitslagen, ribben en aanzichten.');
+}
+
+var EXN=[
+  {kind:'kubus',faces:K1,txt:'Dit is een uitslag van een kubus. De grensvlakken zijn allemaal gelijk.'},
+  {kind:'balk',faces:B1,txt:'Dit is een uitslag van een balk. Er zijn steeds twee grensvlakken gelijk.'}
+];
+function s1(root){
+  var seen={},count=0;
+  var t='Een uitslag is een bouwplaat zonder plakranden. In een uitslag kun je alle grensvlakken goed zien. Een uitslag van een kubus herken je aan zes gelijke vierkante grensvlakken. Een uitslag van een balk herken je aan zes grensvlakken die twee aan twee gelijk zijn.';
+  root.innerHTML='<section class="panel stack"><h2>Uitslag van kubus en balk</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>Een <b>uitslag</b> is een bouwplaat zonder plakranden.</p>'+
+    '<p>In een uitslag kun je alle grensvlakken goed zien.</p>'+
+    '<p>Een uitslag van een <b>kubus</b> herken je aan zes gelijke vierkante grensvlakken.</p>'+
+    '<p>Een uitslag van een <b>balk</b> herken je aan zes grensvlakken die twee aan twee gelijk zijn.</p>'+listenBtn(t)+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Geef aan of de uitslag van een kubus of een balk is. Even grote grensvlakken krijgen dezelfde kleur. Tik op een uitslag en kijk.</p>'+
+    '<div class="cards">'+EXN.map(function(e,k){return '<button class="card" type="button" data-k="'+k+'">'+netSvg(e.faces,null,false)+'<span class="res">Tik om te zien</span></button>'}).join('')+'</div></div>'+
+    '<div class="foot"><span class="count">Bekeken: <b id="cnt">0</b> van 2</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  root.querySelectorAll('[data-k]').forEach(function(b){
+    b.onclick=function(){
+      var k=+b.dataset.k,e=EXN[k];
+      if(!seen[k]){seen[k]=1;count++;b.classList.add('seen');$('#cnt').textContent=count;if(count===2)$('#nx').disabled=false}
+      b.innerHTML=netSvg(e.faces,groupColors(e.kind,e.faces),false)+'<span class="res">'+e.txt+'</span>';
+      say(e.txt,null);
+    };
+  });
+  maybeAuto(t);
+}
+
+var NETQ=[{kind:'kubus',faces:K1},{kind:'kubus',faces:K2},{kind:'kubus',faces:K3},{kind:'balk',faces:B1},{kind:'balk',faces:B2},{kind:'balk',faces:B3}];
+function s2(root){
+  root.innerHTML='<section class="panel stack"><h2>Oefening: kubus of balk?</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(NETQ),cls:'words',
+    stim:function(it){return netSvg(it.faces,null,false)},
+    reveal:function(it){return netSvg(it.faces,groupColors(it.kind,it.faces),false)},
+    q:function(){return 'Is dit een uitslag van een kubus of van een balk?'},
+    say:function(){return 'Is dit een uitslag van een kubus of van een balk?'},
+    opts:function(){return [{id:'kubus',html:'Kubus'},{id:'balk',html:'Balk'}]},
+    correct:function(it){return it.kind},
+    wrong:function(){return 'Nee. Kijk of alle grensvlakken even groot zijn.'},
+    explain:function(it){return it.kind==='kubus'?'Alle zes de grensvlakken zijn even grote vierkanten. Dit is een uitslag van een kubus.':'De zes grensvlakken zijn twee aan twee gelijk. Dit is een uitslag van een balk.'}
+  },next);
+}
+
+var KLEUR=[{kind:'kubus',faces:K2},{kind:'balk',faces:B1},{kind:'balk',faces:B2}];
+function s3(root){
+  var n=0;
+  root.innerHTML='<section class="panel stack"><h2>Oefening: kleur de uitslag</h2><div id="kz" class="stack"></div></section>';
+  function show(){
+    var task=KLEUR[n],faces=task.faces,cols=faces.map(function(){return -1}),pick=0,tries=0,solved=false;
+    var kz=$('#kz');
+    var t='Geef de even grote grensvlakken dezelfde kleur. Kies eerst een kleur en tik dan op de grensvlakken.';
+    kz.innerHTML='<div class="qhead"><span>Uitslag '+(n+1)+' van '+KLEUR.length+'</span></div>'+
+      '<p class="q">Geef de even grote grensvlakken dezelfde kleur.</p>'+listenBtn(t,'Luister')+
+      '<div class="row2" role="group" aria-label="Kies een kleur">'+PAL.map(function(c,k){return '<button class="chip" type="button" data-p="'+k+'" aria-pressed="'+(k===0)+'"><span class="sw" style="background:'+c+'"></span>'+PALN[k]+'</button>'}).join('')+'</div>'+
+      '<div class="stimbox" id="nt">'+netSvg(faces,null,true)+'</div>'+
+      '<p class="fb" role="status" id="fb"></p><div class="after" id="af"><button class="go" type="button" id="chk">Controleer</button></div>';
+    function paint(){
+      $('#nt').innerHTML=netSvg(faces,cols.map(function(c){return c<0?null:PAL[c]}),!solved);
+      bind();
+    }
+    function tap(i){
+      if(solved)return;
+      cols[i]=pick;paint();
+      var r=$('#nt .ia[data-i="'+i+'"]');if(r)r.focus({preventScroll:true});
+    }
+    function bind(){
+      $('#nt').querySelectorAll('.ia').forEach(function(r){
+        r.onclick=function(){tap(+r.dataset.i)};
+        r.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tap(+r.dataset.i)}};
+      });
+    }
+    kz.querySelectorAll('[data-p]').forEach(function(b){
+      b.onclick=function(){pick=+b.dataset.p;kz.querySelectorAll('[data-p]').forEach(function(x){x.setAttribute('aria-pressed',x===b)})};
+    });
+    $('#chk').onclick=function(){
+      var fb=$('#fb');
+      if(cols.some(function(c){return c<0})){fb.className='fb bad';fb.textContent='Kleur eerst alle zes de grensvlakken.';return}
+      var sameBad=false,diffBad=false;
+      for(var i=0;i<faces.length;i++)for(var j=i+1;j<faces.length;j++){
+        var sg=faces[i].g===faces[j].g,sc=cols[i]===cols[j];
+        if(sg&&!sc)sameBad=true;
+        if(!sg&&sc)diffBad=true;
+      }
+      if(sameBad||diffBad){
+        tries++;fb.className='fb bad';
+        fb.textContent=sameBad?'Nog niet goed. Grensvlakken die even groot zijn, moeten dezelfde kleur hebben.':'Nog niet goed. Grensvlakken die niet even groot zijn, moeten een andere kleur hebben.';
+        return;
+      }
+      solved=true;paint();
+      if(tries===0){state.score++;head();fb.textContent='Goed zo! Je krijgt 1 punt.'}else{fb.textContent='Goed! Nu weet je het.'}
+      fb.className='fb good';
+      var txt=task.kind==='kubus'?'Alle grensvlakken zijn even groot. Dit is een uitslag van een kubus.':'Er zijn steeds twee grensvlakken gelijk. Dit is een uitslag van een balk.';
+      $('#af').innerHTML='<p class="expl">'+txt+'</p><button class="go" type="button" id="nn">'+(n<KLEUR.length-1?'Volgende uitslag':'Klaar, verder')+'</button>';
+      $('#nn').onclick=function(){if(n<KLEUR.length-1){n++;show();$('#top').scrollIntoView()}else{next()}};
+    };
+    bind();
+    if(state.auto)say(t,null);
+  }
+  show();
+}
+
+function s4(root){
+  var done={r:false,v:false},cnt={r:0,v:0},mode='r',lab=0;
+  var t='Een ruimtefiguur heeft grensvlakken. De zijden van grensvlakken noem je ribben. De punten waar de ribben bij elkaar komen, heten hoekpunten. Bij een draadmodel kun je alle ribben en hoekpunten zien.';
+  root.innerHTML='<section class="panel stack"><h2>Ribben en hoekpunten</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>Een ruimtefiguur heeft grensvlakken.</p><p>De zijden van grensvlakken noem je <b>ribben</b>.</p>'+
+    '<p>De punten waar de ribben bij elkaar komen, heten <b>hoekpunten</b>.</p>'+
+    '<p>Bij een <b>draadmodel</b> kun je alle ribben en hoekpunten zien.</p>'+listenBtn(t)+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span>'+
+    '<p>Deze balk is een draadmodel, want je kunt alle ribben en hoekpunten zien. Hoeveel ribben en hoekpunten heeft een balk? Tel ze door erop te tikken.</p>'+
+    '<div class="row2" role="group" aria-label="Wat tel je?"><button class="chip" type="button" data-m="r" aria-pressed="true">Tel de ribben</button><button class="chip" type="button" data-m="v" aria-pressed="false">Tel de hoekpunten</button></div>'+
+    '<div class="svgbox">'+wire(true)+'</div>'+
+    '<p class="fb" id="fb" role="status" aria-live="polite"></p></div>'+
+    '<div class="foot"><span class="count">Ribben: <b id="cr">0</b> van 12 · Hoekpunten: <b id="cv">0</b> van 8</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  var svg=$('.wire',root),labs=$('#labs',root);
+  function mark(kind,idx,x,y){
+    cnt[kind]++;
+    var lb=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lb.setAttribute('class','lab');lb.setAttribute('x',x);lb.setAttribute('y',y);lb.textContent=cnt[kind];
+    labs.appendChild(lb);
+    $(kind==='r'?'#cr':'#cv').textContent=cnt[kind];
+    var total=kind==='r'?12:8;
+    if(cnt[kind]===total){
+      done[kind]=true;
+      var m=kind==='r'?'Een balk heeft twaalf ribben.':'Een balk heeft acht hoekpunten.';
+      $('#fb').className='fb good';$('#fb').textContent=m;say(m,null);
+      if(done.r&&done.v)$('#nx').disabled=false;
+    }
+  }
+  function hitE(el){
+    var n=+el.dataset.e,v=$('#ev'+n);
+    if(v.classList.contains('done'))return;
+    v.classList.add('done');
+    var e=wire.E[n],a=wire.V[e[0]],b=wire.V[e[1]];
+    mark('r',n,(a[0]+b[0])/2,(a[1]+b[1])/2-12);
+  }
+  function hitV(el){
+    var n=+el.dataset.v,v=$('#vv'+n);
+    if(v.classList.contains('done'))return;
+    v.classList.add('done');
+    var p=wire.V[n];
+    mark('v',n,p[0],p[1]-22);
+  }
+  svg.querySelectorAll('.he').forEach(function(el){el.onclick=function(){hitE(el)};el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();hitE(el)}}});
+  svg.querySelectorAll('.hv').forEach(function(el){el.onclick=function(){hitV(el)};el.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();hitV(el)}}});
+  root.querySelectorAll('[data-m]').forEach(function(b){
+    b.onclick=function(){
+      mode=b.dataset.m;
+      svg.setAttribute('class','wire m-'+mode);
+      root.querySelectorAll('[data-m]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+    };
+  });
+  maybeAuto(t);
+}
+
+var RQ=[
+  {q:'Hoeveel ribben heeft een balk?',o:['8','12','6'],a:'12',w:1,e:'Een balk heeft twaalf ribben.'},
+  {q:'Hoeveel hoekpunten heeft een balk?',o:['6','8','12'],a:'8',w:1,e:'Een balk heeft acht hoekpunten.'},
+  {q:'Hoeveel grensvlakken heeft een balk?',o:['4','6','12'],a:'6',e:'Een balk heeft zes grensvlakken. In een uitslag zie je ze allemaal.'},
+  {q:'Hoe heten de zijden van de grensvlakken?',o:['ribben','hoekpunten','uitslagen'],a:'ribben',e:'De zijden van grensvlakken noem je ribben.'},
+  {q:'Hoe heten de punten waar de ribben bij elkaar komen?',o:['grensvlakken','ribben','hoekpunten'],a:'hoekpunten',e:'De punten waar de ribben bij elkaar komen, heten hoekpunten.'},
+  {q:'Wat kun je zien bij een draadmodel?',o:['Alle ribben en hoekpunten','Alleen de voorkant','Alleen de grensvlakken'],a:'Alle ribben en hoekpunten',w:1,e:'Bij een draadmodel kun je alle ribben en hoekpunten zien.'}
+];
+function s5(root){
+  root.innerHTML='<section class="panel stack"><h2>Oefening: ribben en hoekpunten</h2><div id="q"></div></section>';
+  quiz($('#q',root),{
+    items:shuffle(RQ),cls:'words',
+    stim:function(it){return it.w?wire(false):''},
+    q:function(it){return it.q},
+    say:function(it){return it.q},
+    opts:function(it){return shuffle(it.o).map(function(x){return {id:x,html:x}})},
+    correct:function(it){return it.a},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return it.e}
+  },next);
+}
+
+function s6(root){
+  var h=STR[0],seen={},count=0,cur=null;
+  var t='Een tekening of een foto waarvan je ziet hoe een ruimtefiguur er van voren uitziet, heet een vooraanzicht. Als je een ruimtefiguur van de zijkant bekijkt, dan zie je het zijaanzicht. Kijk je van de rechterkant, dan zie je het rechter zijaanzicht. Kijk je van de linkerkant, dan zie je het linker zijaanzicht. Bekijk je het ruimtefiguur van de bovenkant, dan zie je een bovenaanzicht.';
+  root.innerHTML='<section class="panel stack"><h2>Aanzichten</h2>'+
+    '<div class="theory"><span class="tab">Theorie</span>'+
+    '<p>Een tekening of een foto waarvan je ziet hoe een ruimtefiguur er van voren uitziet, heet een <b>vooraanzicht</b>.</p>'+
+    '<p>Als je een ruimtefiguur van de zijkant bekijkt, dan zie je het <b>zijaanzicht</b>.</p>'+
+    '<p>Kijk je van de rechterkant, dan zie je het rechter zijaanzicht. Kijk je van de linkerkant, dan zie je het linker zijaanzicht.</p>'+
+    '<p>Bekijk je het ruimtefiguur van de bovenkant, dan zie je een <b>bovenaanzicht</b>.</p>'+listenBtn(t)+'</div>'+
+    '<div class="example"><span class="tab">Voorbeeld</span><p>Geef van elk plaatje aan om welk aanzicht het gaat. Kies een aanzicht en kijk.</p>'+
+    '<div class="svgbox" style="max-width:300px;margin:0 auto">'+iso(h)+'</div>'+
+    '<div class="row2" role="group" aria-label="Kies een aanzicht">'+['voor','zij','boven'].map(function(v){return '<button class="chip" type="button" data-v="'+v+'" aria-pressed="false">'+VN[v]+'</button>'}).join('')+'</div>'+
+    '<div class="say" id="show" aria-live="polite"><p class="muted">Tik op een aanzicht.</p></div></div>'+
+    '<div class="foot"><span class="count">Bekeken: <b id="cnt">0</b> van 3</span><button class="go" type="button" data-next id="nx" disabled>Verder</button></div></section>';
+  root.querySelectorAll('[data-v]').forEach(function(b){
+    b.onclick=function(){
+      var v=b.dataset.v;
+      root.querySelectorAll('[data-v]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+      if(!seen[v]){seen[v]=1;count++;$('#cnt').textContent=count;if(count===3)$('#nx').disabled=false}
+      var d=viewRows(h,v),tx=viewText(h,v);
+      $('#show').innerHTML='<h3>'+VN[v]+'</h3><div style="width:100%;max-width:170px">'+flatSvg(d.rows,VN[v])+'</div><p>'+tx+'</p>'+listenBtn(VN[v]+'. '+tx,'Nog een keer');
+      say(VN[v]+'. '+tx,null);
+    };
+  });
+  maybeAuto(t);
+}
+
+function s7(root){
+  var items=[];
+  STR.forEach(function(h,si){['voor','zij','boven'].forEach(function(v){items.push({h:h,v:v})})});
+  items=shuffle(items).slice(0,6);
+  root.innerHTML='<section class="panel stack"><h2>Oefening: welk aanzicht?</h2><div id="q"></div></section>';
+  var EX={voor:'Je kijkt van voren. Je ziet de hoogte van elke kolom, van links naar rechts.',zij:'Je kijkt vanaf de rechterkant. Links in het plaatje zit de voorkant.',boven:'Je kijkt van boven. Je ziet waar blokken staan. Onderin het plaatje zit de voorkant.'};
+  quiz($('#q',root),{
+    items:items,cls:'words',
+    stim:function(it){return '<div class="pair2"><figure class="a">'+iso(it.h)+'<figcaption>Het bouwwerk</figcaption></figure><figure class="b">'+flatSvg(viewRows(it.h,it.v).rows,'Een aanzicht van het bouwwerk')+'<figcaption>Dit aanzicht</figcaption></figure></div>'},
+    q:function(){return 'Welk aanzicht is dit plaatje?'},
+    say:function(){return 'Kijk naar het bouwwerk en naar het plaatje. Welk aanzicht is dit plaatje?'},
+    opts:function(){return ['voor','zij','boven'].map(function(v){return {id:v,html:VN[v]}})},
+    correct:function(it){return it.v},
+    wrong:function(){return 'Nee, dat is het niet.'},
+    explain:function(it){return 'Dit is het '+VN[it.v].toLowerCase()+'. '+EX[it.v]}
+  },next);
+}
+
+function star(on){return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2 2 9.3l6.9-1z" fill="'+(on?'var(--sun)':'var(--line)')+'" stroke="'+(on?'#b88400':'var(--muted)')+'" stroke-width="1.2" stroke-linejoin="round"/></svg>'}
+function s8(root){
+  var pct=state.score/MAX,stars=pct>=.85?3:pct>=.6?2:1;
+  var nm=state.name?', '+esc(state.name):'';
+  var say1='Goed gedaan'+(state.name?', '+state.name:'')+'! Je hebt '+state.score+' van de '+MAX+' punten.';
+  root.innerHTML='<section class="panel stack center"><h2>Goed gedaan'+nm+'!</h2>'+
+    '<div class="stars" role="img" aria-label="'+stars+' van de 3 sterren">'+[1,2,3].map(function(n){return star(n<=stars)}).join('')+'</div>'+
+    '<p class="big">Je hebt <b>'+state.score+'</b> van de <b>'+MAX+'</b> punten.</p>'+listenBtn(say1)+
+    '<div class="theory"><span class="tab">Dit heb je geleerd</span>'+
+    '<p>Een <b>uitslag</b> is een bouwplaat zonder plakranden. Bij een kubus zijn alle zes de grensvlakken gelijk. Bij een balk zijn ze twee aan twee gelijk.</p>'+
+    '<p>De zijden van grensvlakken heten <b>ribben</b>. De punten waar ribben bij elkaar komen heten <b>hoekpunten</b>. Een balk heeft 12 ribben en 8 hoekpunten.</p>'+
+    '<p>Een <b>vooraanzicht</b>, <b>zijaanzicht</b> en <b>bovenaanzicht</b> laten zien hoe een ruimtefiguur er van voren, van opzij en van boven uitziet.</p>'+
+    '<div class="recap"><div>'+netSvg(B1,groupColors('balk',B1),false)+'Uitslag</div><div>'+wire(false)+'Draadmodel</div><div>'+flatSvg(viewRows(STR[0],'voor').rows,'Vooraanzicht')+'Vooraanzicht</div></div></div>'+
+    '<button class="go" type="button" id="again">Begin opnieuw</button></section>';
+  $('#again').onclick=function(){state.score=0;go(0)};
+  maybeAuto(say1);
+}
+
+var STEPS=[
+  {name:'Start',fn:s0},
+  {name:'Uitslag van kubus en balk',fn:s1},
+  {name:'Oefening: kubus of balk?',fn:s2},
+  {name:'Oefening: kleur de uitslag',fn:s3},
+  {name:'Ribben en hoekpunten',fn:s4},
+  {name:'Oefening: ribben en hoekpunten',fn:s5},
+  {name:'Aanzichten',fn:s6},
+  {name:'Oefening: welk aanzicht?',fn:s7},
+  {name:'Klaar',fn:s8}
+];
+function go(i){
+  stopSpeech();state.i=i;head();
+  STEPS[i].fn($('#stage'));
+  $('#top').scrollIntoView();
+  $('#stage').focus({preventScroll:true});
+}
+
+document.addEventListener('click',function(e){
+  var l=e.target.closest('.listen');
+  if(l){say(l.dataset.say,l);return}
+  var nx=e.target.closest('[data-next]');
+  if(nx&&!nx.disabled){var nm=$('#naam');if(nm)state.name=nm.value.trim();go(state.i+1)}
+});
+$('#auto').onchange=function(e){state.auto=e.target.checked;if(!state.auto)stopSpeech()};
+
+go(0);
+})();
+</script>
+
+</html>

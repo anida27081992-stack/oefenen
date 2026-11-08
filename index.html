@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="nl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oefenen rekenen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: één smalle kolom met drie grote lesknoppen onder elkaar. */
+:root{
+  --bg:#eef5ff; --surface:#ffffff; --ink:#10253f; --muted:#4a5f7a; --line:#c9d9ee;
+  --blue:#1c6df2; --blue-d:#1450b8; --on-blue:#ffffff; --blue-soft:#dcebff;
+  --teal:#0aa384; --teal-d:#067a63; --teal-soft:#d3f3ea;
+  --hot:#d9480f; --sun:#ffc531;
+  --fig:#b7c9f2; --figline:#1d4f9c; --c1:#ef9aa8; --c2:#7fcfbf; --c3:#ffd98a;
+  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+    --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+    --teal:#2fd1ac; --teal-d:#2fd1ac; --teal-soft:#10403a; --hot:#ff9a6b; --sun:#ffd25c;
+    --fig:#3d5a94; --figline:#a9c4f5; --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
+  --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
+  --teal:#2fd1ac; --teal-d:#2fd1ac; --teal-soft:#10403a; --hot:#ff9a6b; --sun:#ffd25c;
+  --fig:#3d5a94; --figline:#a9c4f5; --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.5;
+  padding-block:24px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2{font-family:var(--font-display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.4rem,9vw,3.6rem)}
+h2{font-size:1.6rem}
+p{margin:0}
+.brand{font:700 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--teal-d)}
+.hello{font:700 1.35rem var(--font-display);color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:4px;max-width:340px}
+.field label{font-weight:700}
+input{font:inherit;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.list{display:flex;flex-direction:column;gap:14px}
+.lesson{position:relative;display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:center;text-decoration:none;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 4px 0 var(--line);transition:transform .15s}
+.lesson:hover{border-color:var(--blue);transform:translateY(-2px)}
+.lesson:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.art{display:flex;align-items:center;justify-content:center;background:var(--blue-soft);border-radius:12px;aspect-ratio:1;padding:8px}
+.art svg{width:100%;height:auto;display:block}
+.body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px 8px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.tags span{background:var(--bg);border-radius:99px;padding:1px 10px}
+.start{align-self:flex-start;margin-top:4px;background:var(--blue);color:var(--on-blue);border-radius:10px;padding:6px 18px;font:700 1.1rem var(--font-display);box-shadow:0 3px 0 var(--blue-d)}
+.seen{position:absolute;top:10px;right:12px;font-size:.85rem;font-weight:800;color:var(--teal-d);display:none}
+.lesson.opened .seen{display:block}
+.note{color:var(--muted);font-size:.95rem}
+@media (max-width:480px){.lesson{grid-template-columns:84px minmax(0,1fr);gap:12px;padding:12px}h2{font-size:1.35rem}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <p class="brand">Wiskunde · klas 1 vmbo basis</p>
+    <h1>Oefenen rekenen</h1>
+    <p class="hello" id="hello">Kies een les.</p>
+    <div class="field"><label for="naam">Hoe heet je? (mag leeg)</label><input type="text" id="naam" maxlength="30" autocomplete="off"></div>
+  </header>
+
+  <nav class="list" aria-label="Lessen">
+    <a class="lesson" href="ruimtefiguren.html" data-id="ruimtefiguren">
+      <span class="art" aria-hidden="true">
+        <svg viewBox="0 0 120 100"><polygon points="20,40 70,40 70,90 20,90" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/><polygon points="20,40 70,40 94,16 44,16" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/><polygon points="70,40 70,90 94,66 94,16" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="body">
+        <h2>Ruimtefiguren en grensvlakken</h2>
+        <p>Balk, kubus, piramide, bol, cilinder en kegel. Welke vorm heeft een grensvlak?</p>
+        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
+        <span class="start">Start</span>
+      </span>
+      <span class="seen">Geopend ✓</span>
+    </a>
+
+    <a class="lesson" href="decimalen.html" data-id="decimalen">
+      <span class="art" aria-hidden="true">
+        <svg viewBox="0 0 120 100"><text x="60" y="58" text-anchor="middle" font-family="Baloo 2,Trebuchet MS,sans-serif" font-weight="700" font-size="30"><tspan fill="var(--blue)">0,91</tspan><tspan fill="var(--ink)">|</tspan><tspan fill="var(--hot)">7</tspan></text><path d="M82 70 q8 12 -6 14" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round"/><text x="60" y="94" text-anchor="middle" font-family="Baloo 2,Trebuchet MS,sans-serif" font-weight="700" font-size="14" fill="var(--blue)">+1</text></svg>
+      </span>
+      <span class="body">
+        <h2>Decimalen afronden</h2>
+        <p>Kijk naar het cijfer achter de streep. Rond af op centen en op andere plekken.</p>
+        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
+        <span class="start">Start</span>
+      </span>
+      <span class="seen">Geopend ✓</span>
+    </a>
+
+    <a class="lesson" href="uitslag.html" data-id="uitslag">
+      <span class="art" aria-hidden="true">
+        <svg viewBox="0 0 120 100"><g stroke="var(--figline)" stroke-width="2.5" stroke-linejoin="round" fill="var(--c1)"><rect x="36" y="8" width="24" height="24"/><rect x="12" y="32" width="24" height="24"/><rect x="36" y="32" width="24" height="24"/><rect x="60" y="32" width="24" height="24"/><rect x="84" y="32" width="24" height="24"/><rect x="36" y="56" width="24" height="24"/></g></svg>
+      </span>
+      <span class="body">
+        <h2>Uitslag, ribben en aanzichten</h2>
+        <p>Uitslag van kubus en balk, ribben en hoekpunten, en voor-, zij- en bovenaanzicht.</p>
+        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
+        <span class="start">Start</span>
+      </span>
+      <span class="seen">Geopend ✓</span>
+    </a>
+  </nav>
+
+  <p class="note">Zet je geluid aan. In elke les kun je op <b>Lees voor</b> tikken om een tekst te horen.</p>
+</div>
+
+<script>
+(function(){
+  var get=function(k){try{return localStorage.getItem(k)}catch(e){return null}};
+  var set=function(k,v){try{localStorage.setItem(k,v)}catch(e){}};
+  var inp=document.getElementById('naam'),hello=document.getElementById('hello');
+  function greet(){var n=inp.value.trim();hello.textContent=n?'Hoi '+n+'! Kies een les.':'Kies een les.'}
+  inp.value=get('rekenen-naam')||'';greet();
+  inp.addEventListener('input',function(){set('rekenen-naam',inp.value.trim());greet()});
+  document.querySelectorAll('.lesson').forEach(function(a){
+    var id=a.dataset.id;
+    if(get('rekenen-open-'+id))a.classList.add('opened');
+    a.addEventListener('click',function(){set('rekenen-open-'+id,'1')});
+  });
+})();
+</script>
+
+</html>
