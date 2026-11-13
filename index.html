@@ -127,7 +127,18 @@ footer{margin-top:28px;display:flex;justify-content:center}footer button{font-si
     var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lessen.json';document.body.appendChild(a);a.click();
     setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
     status('lessen.json is gedownload. Zet dit bestand in GitHub bij de andere bestanden.','ok')};
-  $('#gear').onclick=function(){var s=$('#settings'),open=s.hidden;s.hidden=!open;$('#gear').setAttribute('aria-expanded',String(open));if(open)s.scrollIntoView({block:'start'})};
+  var PWHASH='d5dc9de154995584767d24016e384e230fa1488abc78d9d46c8db7c78181ea90';
+  function sha256(t){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return('0'+x.toString(16)).slice(-2)}).join('')})}
+  function toggleSettings(open){var s=$('#settings');s.hidden=!open;$('#gear').setAttribute('aria-expanded',String(open));if(open)s.scrollIntoView({block:'start'})}
+  $('#gear').onclick=function(){
+    if(!$('#settings').hidden){toggleSettings(false);return}
+    var pw=prompt('Wachtwoord voor de docent:');
+    if(pw===null)return;
+    if(!(window.crypto&&crypto.subtle)){alert('Dit kan niet in deze browser.');return}
+    sha256('index-docent:'+pw.trim()).then(function(h){
+      if(h===PWHASH)toggleSettings(true);else alert('Dat wachtwoord is niet goed.')
+    })
+  };
   function start(cfg){
     base=norm(copy(cfg));state=copy(base);
     try{var o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.wiskunde&&o.rekenen){state.columns=o;norm(state)}}catch(e){}
