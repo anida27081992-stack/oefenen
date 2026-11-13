@@ -1,0 +1,621 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}[hidden]{display:none!important}</style></head><body>
+<title>Ruimtefiguren Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* Layout: sticky kop met score, tabbalk, per tab een 3D-podium links en spelbediening rechts (onder elkaar op een telefoon). */
+:root{
+  --bg:#eef3fb; --card:#ffffff; --ink:#14213d; --muted:#56637f; --line:#d3dcee;
+  --accent:#3a6ff7; --accent-ink:#ffffff; --warm:#ffb703; --good:#178a5c; --good-bg:#dcf5e8;
+  --bad:#c93a40; --bad-bg:#fde3e4; --stage:#dde8fb; --pink:#e0457b;
+  --disp:'Fredoka','Trebuchet MS',system-ui,sans-serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1526; --card:#17223b; --ink:#eaf0ff; --muted:#9fb0d3; --line:#2b3a5e;
+  --accent:#6d97ff; --accent-ink:#0b1430; --warm:#ffc93c; --good:#58d8a0; --good-bg:#12382c;
+  --bad:#ff7b80; --bad-bg:#40191c; --stage:#101b33; --pink:#ff7aa8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1526; --card:#17223b; --ink:#eaf0ff; --muted:#9fb0d3; --line:#2b3a5e;
+  --accent:#6d97ff; --accent-ink:#0b1430; --warm:#ffc93c; --good:#58d8a0; --good-bg:#12382c;
+  --bad:#ff7b80; --bad-bg:#40191c; --stage:#101b33; --pink:#ff7aa8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--disp);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(24px,5vw,34px)} h2{font-size:22px} h3{font-size:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 8px;flex-wrap:wrap}
+.top p{margin:2px 0 0;color:var(--muted)}
+.score{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:6px 16px;font-family:var(--disp);font-size:20px;font-variant-numeric:tabular-nums}
+.score b{color:var(--warm);font-size:24px;line-height:1}
+.score.pop{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.18)}}
+nav{display:flex;gap:8px;overflow-x:auto;padding:8px 0 12px;position:sticky;top:0;background:var(--bg);z-index:5;scrollbar-width:thin}
+nav button{flex:none;font:600 15px var(--disp);padding:9px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.panel{display:none;flex-direction:column;gap:16px}.panel.on{display:flex}
+.goal{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 18px;display:grid;gap:4px}
+.eyebrow{font:700 12px var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.goal p{margin:0}
+.lab{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:760px){.lab{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;background:var(--stage);border-radius:18px;border:2px solid var(--line);aspect-ratio:4/3;min-height:260px;overflow:hidden;touch-action:none;cursor:grab}
+.stage:active{cursor:grabbing}
+.stage canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;left:10px;bottom:8px;font-size:13px;color:var(--muted);pointer-events:none}
+.badge{position:absolute;right:10px;top:10px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:2px 10px;font:600 15px var(--disp);pointer-events:none}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:600 16px var(--disp);padding:9px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.main{background:var(--warm);border-color:var(--warm);color:#2b1d00}
+.btn.good{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.btn.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.fb{min-height:48px;padding:10px 14px;border-radius:12px;background:var(--stage);font-weight:600}
+.fb.good{background:var(--good-bg);color:var(--good)}.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.q{font:600 19px var(--disp)}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-variant-numeric:tabular-nums}
+.facts dt{color:var(--muted)}.facts dd{margin:0;font-weight:800}
+.big{font:700 34px var(--disp);font-variant-numeric:tabular-nums}
+.counters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.counters div{background:var(--stage);border-radius:12px;padding:8px 12px}
+.counters small{display:block;color:var(--muted)}
+label.sl{display:grid;grid-template-columns:90px 1fr 36px;gap:8px;align-items:center;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.sub{margin-top:8px;display:flex;flex-direction:column;gap:12px}
+.planks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.planks button{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px;cursor:pointer;color:var(--ink)}
+.planks button:hover{border-color:var(--accent)}
+.planks svg{width:100%;height:84px;display:block}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opts button{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px;cursor:pointer;color:var(--ink);font:600 15px var(--disp)}
+.opts svg{width:100%;height:100px;display:block}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-2px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.score.pop{animation:none}}
+</style>
+
+<div class="wrap">
+<div style="padding-top:14px"><a href="index.html" style="color:var(--muted,#56637f);font:700 15px/1.2 system-ui,sans-serif;text-decoration:none">← Alle lessen</a></div>
+<header class="top">
+  <div><h1>Ruimtefiguren Lab</h1><p>Draai, vouw, tik en tel. Sleep met je vinger of muis om een figuur te draaien.</p></div>
+  <div class="score" id="scoreBox" aria-live="polite"><b>★</b><span id="score">0</span> punten</div>
+</header>
+<nav id="tabs" role="tablist">
+  <button role="tab" data-tab="ontdek">1 Namen</button>
+  <button role="tab" data-tab="raad">2 Raad de figuur</button>
+  <button role="tab" data-tab="grens">3 Grensvlakken</button>
+  <button role="tab" data-tab="uitslag">4 Uitslagen</button>
+  <button role="tab" data-tab="draad">5 Draadmodel</button>
+  <button role="tab" data-tab="nest">6 Nestkastje</button>
+</nav>
+
+<section class="panel" id="p-ontdek">
+  <div class="goal"><span class="eyebrow">Leerdoel</span><p><b>Je weet wat de namen zijn van de wiskundige ruimtefiguren.</b> Een kubus, balk, piramide, bol, cilinder en kegel zijn ruimtefiguren.</p></div>
+  <div class="lab">
+    <div class="stage" id="st-ontdek"><span class="badge" id="ontName">kubus</span><span class="hint">Sleep om te draaien</span></div>
+    <div class="side">
+      <div class="card"><h3>Kies een figuur</h3><div class="row" id="shapeBtns"></div></div>
+      <div class="card"><h3 id="infoTitle">kubus</h3><p id="infoText" style="margin:0"></p>
+        <dl class="facts" id="infoFacts"></dl>
+        <label class="row" style="align-items:center;gap:8px"><input type="checkbox" id="autoSpin" checked> Laat de figuur zelf draaien</label></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="p-raad">
+  <div class="goal"><span class="eyebrow">Spel</span><p><b>Welke figuur is dit?</b> Kies een spel en verdien punten.</p></div>
+  <div class="row"><button class="btn on" id="raadModeA">Raad de figuur</button><button class="btn" id="raadModeB">Blokkenstad: tik op de figuur</button></div>
+  <div class="lab">
+    <div class="stage" id="st-raad"><span class="badge" id="raadBadge">Ronde 1</span><span class="hint">Sleep om te draaien</span></div>
+    <div class="side"><div class="card"><div class="q" id="raadQ"></div><div class="row" id="raadBtns"></div></div>
+      <div class="fb" id="raadFb">Draai de figuur en kijk goed.</div>
+      <div class="card"><div class="counters"><div><small>Goed op rij</small><span class="big" id="raadStreak">0</span></div><div><small>Beste reeks</small><span class="big" id="raadBest">0</span></div></div></div></div>
+  </div>
+</section>
+
+<section class="panel" id="p-grens">
+  <div class="goal"><span class="eyebrow">Leerdoel</span><p><b>Je weet wat een grensvlak is en wat de vorm van een grensvlak kan zijn.</b> De vlakken van een ruimtefiguur heten grensvlakken. Een grensvlak kan een vierkant, een rechthoek, een driehoek of een cirkel zijn.</p></div>
+  <div class="lab">
+    <div class="stage" id="st-grens"><span class="badge" id="grBadge"></span><span class="hint">Tik op een grensvlak</span></div>
+    <div class="side">
+      <div class="card"><h3>Figuur</h3><div class="row" id="grShapes"></div>
+        <div class="row"><button class="btn on" id="grModeA">Opdracht</button><button class="btn" id="grModeB">Vrij ontdekken</button></div></div>
+      <div class="card"><div class="q" id="grQ"></div></div>
+      <div class="fb" id="grFb">Tik op een kant van de figuur.</div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="p-uitslag">
+  <div class="goal"><span class="eyebrow">Leerdoel</span><p><b>Je weet wat een uitslag is en je kunt de uitslag van een kubus en een balk herkennen.</b> Een uitslag is een bouwplaat zonder plakranden. Bij een kubus zijn alle zes grensvlakken gelijke vierkanten. Bij een balk zijn de zes grensvlakken twee aan twee gelijk.</p></div>
+  <h2>A. Maak je eigen balk</h2>
+  <div class="lab">
+    <div class="stage" id="st-balk"><span class="badge" id="balkBadge">balk</span><span class="hint">Sleep om te draaien</span></div>
+    <div class="side">
+      <div class="card">
+        <label class="sl">breedte<input type="range" id="sw" min="1" max="3" step="0.5" value="3"><b id="swv">3</b></label>
+        <label class="sl">hoogte<input type="range" id="sh" min="1" max="3" step="0.5" value="2"><b id="shv">2</b></label>
+        <label class="sl">diepte<input type="range" id="sd" min="1" max="3" step="0.5" value="1.5"><b id="sdv">1,5</b></label>
+        <label class="sl">vouwen<input type="range" id="sf" min="0" max="100" value="0"><b id="sfv">0%</b></label>
+        <div class="row"><button class="btn main" id="foldBtn">Vouw dicht</button><button class="btn" id="cubeBtn">Maak er een kubus van</button></div>
+      </div>
+      <div class="card"><div class="legend" id="balkLegend"></div><div class="fb" id="balkFb"></div></div>
+    </div>
+  </div>
+  <h2>B. Kan dit een kubus worden?</h2>
+  <div class="lab">
+    <div class="stage" id="st-net"><span class="badge" id="netBadge">Uitslag 1</span><span class="hint">Sleep om te draaien</span></div>
+    <div class="side">
+      <div class="card"><div class="q">Is dit de uitslag van een kubus?</div>
+        <div class="row"><button class="btn" id="netYes">Ja</button><button class="btn" id="netNo">Nee</button></div></div>
+      <div class="fb" id="netFb">Kijk goed naar de uitslag. Wat denk je?</div>
+      <div class="row"><button class="btn main" id="netNext" hidden>Volgende uitslag</button><button class="btn" id="netFold">Vouw nog eens</button></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="p-draad">
+  <div class="goal"><span class="eyebrow">Leerdoel</span><p><b>Je weet wat hoekpunten en ribben zijn en wat een draadmodel is.</b> De zijden van de grensvlakken heten ribben. De punten waar de ribben bij elkaar komen heten hoekpunten. Bij een draadmodel zie je alle ribben en hoekpunten.</p></div>
+  <div class="lab">
+    <div class="stage" id="st-draad"><span class="badge" id="drBadge">kubus</span><span class="hint">Tik op ribben (staafjes) en hoekpunten (bolletjes)</span></div>
+    <div class="side">
+      <div class="card"><h3>Draadmodel</h3><div class="row" id="drShapes"></div></div>
+      <div class="card"><div class="counters"><div><small>Ribben geteld</small><span class="big" id="cntE">0</span></div><div><small>Hoekpunten geteld</small><span class="big" id="cntV">0</span></div></div>
+        <div class="row"><button class="btn main" id="drCheck">Controleer</button><button class="btn" id="drReset">Opnieuw tellen</button></div></div>
+      <div class="fb" id="drFb">Tik op alle ribben en alle hoekpunten. Elke tik telt er één bij.</div>
+      <div class="card"><h3>Mijn tabel</h3><dl class="facts" id="drTable"></dl></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="p-nest">
+  <div class="goal"><span class="eyebrow">Wiskunde is overal</span><p><b>Vogelhuisjes.</b> Een nestkastje bekijk je van voren, van opzij en van boven. Dat zijn aanzichten.</p></div>
+  <div class="lab">
+    <div class="stage" id="st-nest"><span class="badge" id="nestBadge">schuin</span><span class="hint">Sleep om te draaien</span></div>
+    <div class="side">
+      <div class="card"><h3>Bekijk het nestkastje</h3><div class="row">
+        <button class="btn" data-view="voor">Vooraanzicht</button><button class="btn" data-view="zij">Rechter zijaanzicht</button><button class="btn" data-view="boven">Bovenaanzicht</button></div></div>
+      <div class="card"><div class="q" id="nestQ"></div><div class="planks" id="nestPlanks"></div></div>
+      <div class="fb" id="nestFb">Tik op het juiste plankje.</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<div id="loadErr" hidden style="margin:16px 0;padding:14px 18px;border-radius:14px;background:var(--bad-bg);color:var(--bad);font-weight:700">De 3D-onderdelen konden niet worden geladen. Controleer of je internet hebt en of de school geen scripts blokkeert. Ververs daarna de pagina.</div>
+<script>
+(function(){
+  var srcs=["https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js","https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js","https://unpkg.com/three@0.128.0/build/three.min.js"];
+  function boot(){
+/* ---------- basis ---------- */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let score=0; try{score=+localStorage.getItem('rf-score')||0}catch(e){}
+$('#score').textContent=score;
+function addScore(n){score+=n;$('#score').textContent=score;const b=$('#scoreBox');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');try{localStorage.setItem('rf-score',score)}catch(e){}}
+function say(el,txt,kind){el.textContent=txt;el.className='fb'+(kind?' '+kind:'')}
+function mkBtn(parent,txt,cls,fn){const b=document.createElement('button');b.className='btn '+(cls||'');b.textContent=txt;b.onclick=fn;parent.appendChild(b);return b}
+
+/* ---------- 3D viewer: slepen = draaien, tikken = kiezen ---------- */
+const viewers=[];
+function Viewer(host,opt){
+  opt=opt||{};
+  const r=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  host.prepend(r.domElement);
+  const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(opt.fov||40,1,.1,100);
+  cam.position.set(0,0,opt.dist||7.5);
+  scene.add(new THREE.AmbientLight(0xffffff,.75));
+  const d1=new THREE.DirectionalLight(0xffffff,.75);d1.position.set(3,5,4);scene.add(d1);
+  const d2=new THREE.DirectionalLight(0xffffff,.3);d2.position.set(-4,-2,-3);scene.add(d2);
+  const root=new THREE.Group();scene.add(root);
+  const v={host,r,scene,cam,root,spin:opt.spin||0,onPick:null,goal:null,dragging:false,onFrame:null};
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+  let lx=0,ly=0,moved=0;
+  const dom=r.domElement;
+  dom.addEventListener('pointerdown',e=>{v.dragging=true;moved=0;lx=e.clientX;ly=e.clientY;v.goal=null;try{dom.setPointerCapture(e.pointerId)}catch(x){}});
+  dom.addEventListener('pointermove',e=>{if(!v.dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+    const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(dy*.01,dx*.01,0,'XYZ'));root.quaternion.premultiply(q)});
+  dom.addEventListener('pointerup',e=>{const was=v.dragging;v.dragging=false;if(was&&moved<7&&v.onPick){
+    const b=dom.getBoundingClientRect();ndc.set(((e.clientX-b.left)/b.width)*2-1,-((e.clientY-b.top)/b.height)*2+1);
+    ray.setFromCamera(ndc,cam);v.onPick(ray.intersectObjects(root.children,true))}});
+  dom.addEventListener('pointercancel',()=>{v.dragging=false});
+  const fit=()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()};
+  new ResizeObserver(fit).observe(host);fit();
+  v.fit=fit;
+  v.clear=()=>{for(let i=root.children.length-1;i>=0;i--){const c=root.children[i];root.remove(c);c.traverse(o=>{if(o.geometry)o.geometry.dispose()})}};
+  v.reset=(x,y)=>{root.quaternion.setFromEuler(new THREE.Euler(x==null?.45:x,y==null?-.6:y,0));root.position.set(0,0,0);root.scale.set(1,1,1)};
+  v.reset();viewers.push(v);return v;
+}
+(function loop(){
+  requestAnimationFrame(loop);
+  for(const v of viewers){
+    if(v.host.offsetParent===null)continue;
+    if(v.host.clientWidth!==v.r.domElement.width/(v.r.getPixelRatio()))v.fit();
+    if(v.goal){v.root.quaternion.slerp(v.goal,.12);if(v.root.quaternion.angleTo(v.goal)<.002){v.root.quaternion.copy(v.goal);v.goal=null}}
+    else if(v.spin&&!v.dragging)v.root.rotateOnWorldAxis(new THREE.Vector3(0,1,0),v.spin);
+    if(v.onFrame)v.onFrame();
+    v.r.render(v.scene,v.cam);
+  }
+})();
+
+/* ---------- figuren ---------- */
+const COL={kubus:0x4f8cff,balk:0xffb703,piramide:0xe0457b,bol:0x2ec4b6,cilinder:0xff7a3d,kegel:0x9b5de5};
+const NAMES=['kubus','balk','piramide','bol','cilinder','kegel'];
+const LINE=new THREE.LineBasicMaterial({color:0x0f1b36});
+function mat(c){const m=new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide});m.userData.base=c;return m}
+function pyramidGeo(){
+  const A=[0,1,0],P=[[-1,-.9,-1],[1,-.9,-1],[1,-.9,1],[-1,-.9,1]],t=[];
+  for(let i=0;i<4;i++)t.push(P[i],P[(i+1)%4],A);
+  t.push(P[0],P[3],P[2],P[0],P[2],P[1]);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(t.flat(),3));
+  for(let i=0;i<4;i++)g.addGroup(i*3,3,i);g.addGroup(12,6,4);g.computeVertexNormals();return g}
+function makeShape(n,c){
+  c=c||COL[n];let geo,mats;
+  if(n==='kubus'){geo=new THREE.BoxGeometry(1.7,1.7,1.7);mats=[0,1,2,3,4,5].map(()=>mat(c))}
+  else if(n==='balk'){geo=new THREE.BoxGeometry(2.6,1.3,1.7);mats=[0,1,2,3,4,5].map(()=>mat(c))}
+  else if(n==='cilinder'){geo=new THREE.CylinderGeometry(.95,.95,1.9,48);mats=[mat(c),mat(c),mat(c)]}
+  else if(n==='kegel'){geo=new THREE.ConeGeometry(1,2,48);mats=[mat(c),mat(c)]}
+  else if(n==='piramide'){geo=pyramidGeo();mats=[0,1,2,3,4].map(()=>mat(c))}
+  else {geo=new THREE.SphereGeometry(1.15,48,32);mats=mat(c)}
+  const m=new THREE.Mesh(geo,mats);m.userData.shape=n;
+  if(n!=='bol'){const l=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),LINE);l.raycast=()=>{};m.add(l)}
+  return m}
+/* vorm van elk grensvlak per materiaalnummer */
+const FACE={kubus:Array(6).fill('vierkant'),balk:Array(6).fill('rechthoek'),
+  piramide:['driehoek','driehoek','driehoek','driehoek','vierkant'],
+  cilinder:['kromme','cirkel','cirkel'],kegel:['kromme','cirkel'],bol:['kromme']};
+const INFO={
+ kubus:{t:'Een kubus heeft zes gelijke vierkanten als grensvlakken.',vl:'6 vierkanten',r:12,h:8,vb:'een dobbelsteen'},
+ balk:{t:'Een balk heeft zes rechthoeken als grensvlakken. Ze zijn twee aan twee gelijk.',vl:'6 rechthoeken',r:12,h:8,vb:'een schoenendoos'},
+ piramide:{t:'Een piramide heeft een grondvlak en driehoeken die bovenaan samenkomen.',vl:'1 vierkant + 4 driehoeken',r:8,h:5,vb:'de piramide van Gizeh'},
+ bol:{t:'Een bol is helemaal rond. Hij heeft geen ribben en geen hoekpunten.',vl:'1 kromme kant',r:0,h:0,vb:'een voetbal'},
+ cilinder:{t:'Een cilinder heeft twee cirkels (boven en onder) en een kromme zijkant.',vl:'2 cirkels + kromme zijkant',r:2,h:0,vb:'een blikje soep'},
+ kegel:{t:'Een kegel heeft één cirkel onderaan en loopt bovenaan uit in een punt.',vl:'1 cirkel + kromme zijkant',r:1,h:1,vb:'een ijshoorntje'}};
+
+/* ---------- tabs ---------- */
+const inits={};const done={};
+function openTab(t){
+  if(!$('#p-'+t))t='ontdek';
+  $$('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  $$('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
+  if(!done[t]){done[t]=1;inits[t]&&inits[t]()}
+  viewers.forEach(v=>v.fit());
+  try{if(location.hash!=='#'+t)history.replaceState(null,'','#'+t)}catch(e){}
+}
+$$('#tabs button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+
+/* ---------- 1 Namen ---------- */
+inits.ontdek=function(){
+  const v=Viewer($('#st-ontdek'),{spin:.008}),box=$('#shapeBtns'),btns={};
+  function show(n){
+    v.clear();v.root.add(makeShape(n));
+    $('#ontName').textContent=n;$('#infoTitle').textContent='Een '+n;$('#infoText').textContent=INFO[n].t;
+    const i=INFO[n],round=['kubus','balk','piramide'].includes(n);
+    $('#infoFacts').innerHTML='<dt>Grensvlakken</dt><dd>'+i.vl+'</dd><dt>Ribben</dt><dd>'+(round?i.r:'rond, we tellen ze niet')+'</dd><dt>Hoekpunten</dt><dd>'+(n==='kubus'||n==='balk'||n==='piramide'?i.h:(n==='kegel'?'1 punt bovenaan':'geen'))+'</dd><dt>Voorbeeld</dt><dd>'+i.vb+'</dd>';
+    NAMES.forEach(k=>btns[k].classList.toggle('on',k===n));
+  }
+  NAMES.forEach(n=>btns[n]=mkBtn(box,n,'',()=>show(n)));
+  $('#autoSpin').onchange=e=>v.spin=e.target.checked?.008:0;
+  show('kubus');
+};
+
+/* ---------- 2 Raad de figuur ---------- */
+inits.raad=function(){
+  const host=$('#st-raad'),v=Viewer(host,{spin:.006,dist:7.5});
+  let mode='A',round=0,streak=0,best=0,cur=null,queue=[],lock=false;
+  const fb=$('#raadFb'),q=$('#raadQ'),bb=$('#raadBtns');
+  function ok(){streak++;best=Math.max(best,streak);addScore(1);$('#raadStreak').textContent=streak;$('#raadBest').textContent=best}
+  function bad(){streak=0;$('#raadStreak').textContent=0}
+  function roundA(){
+    lock=false;round++;$('#raadBadge').textContent='Ronde '+round;
+    let n;do{n=rnd(NAMES)}while(n===cur);cur=n;
+    v.clear();v.cam.position.z=7.5;v.spin=.006;v.reset(Math.random()*1.4-.2,Math.random()*6);
+    v.root.add(makeShape(n));v.onPick=null;
+    q.textContent='Welke ruimtefiguur is dit?';
+    bb.innerHTML='';NAMES.forEach(k=>mkBtn(bb,k,'',function(){
+      if(lock)return;
+      if(k===cur){lock=true;ok();this.classList.add('good');say(fb,'Goed! Dit is een '+cur+'. Denk aan '+INFO[cur].vb+'.','good');setTimeout(roundA,1700)}
+      else{bad();this.classList.add('bad');say(fb,'Nog niet goed. Tip: de grensvlakken zijn '+INFO[cur].vl+'.','bad')}}));
+    say(fb,'Draai de figuur en kijk goed.');
+  }
+  function city(){
+    v.clear();v.cam.position.z=10.5;v.spin=0;v.reset(.5,-.4);
+    const list=shuffle(NAMES.concat([rnd(NAMES),rnd(NAMES),rnd(NAMES)])),pos=[];
+    for(let x=0;x<3;x++)for(let z=0;z<3;z++)pos.push([(x-1)*2.3,(z-1)*2.3]);
+    list.forEach((n,i)=>{const m=makeShape(n);m.scale.setScalar(.56);m.position.set(pos[i][0],0,pos[i][1]);v.root.add(m)});
+    const g=new THREE.Mesh(new THREE.BoxGeometry(7.6,.12,7.6),new THREE.MeshLambertMaterial({color:0xb9c6e4}));g.position.y=-.75;g.userData.ground=true;v.root.add(g);
+    queue=shuffle(NAMES);
+  }
+  function roundB(){
+    lock=false;
+    if(!queue.length){city();say(fb,'Alle figuren gevonden! Er staat een nieuwe stad klaar.','good')}
+    cur=queue[0];round=6-queue.length+1;$('#raadBadge').textContent='Zoek '+round+' van 6';
+    q.textContent='Tik op de '+cur+'.';bb.innerHTML='';
+    v.onPick=hits=>{
+      const h=hits.find(x=>x.object.userData.shape);if(!h){return}
+      const n=h.object.userData.shape;
+      if(n===cur){ok();h.object.material=Array.isArray(h.object.material)?h.object.material.map(()=>mat(0x9aa6c0)):mat(0x9aa6c0);
+        h.object.userData.shape='gevonden';queue.shift();say(fb,'Goed gevonden! Dat is een '+n+'.','good');setTimeout(roundB,900)}
+      else if(n==='gevonden'){say(fb,'Die heb je al gevonden. Zoek een '+cur+'.')}
+      else{bad();say(fb,'Dat is een '+n+'. Zoek een '+cur+'.','bad')}};
+  }
+  function setMode(m){mode=m;$('#raadModeA').classList.toggle('on',m==='A');$('#raadModeB').classList.toggle('on',m==='B');round=0;
+    if(m==='A')roundA();else{city();roundB();say(fb,'Draai de stad en tik op de juiste figuur.')}}
+  $('#raadModeA').onclick=()=>setMode('A');$('#raadModeB').onclick=()=>setMode('B');
+  setMode('A');
+};
+
+/* ---------- 3 Grensvlakken ---------- */
+inits.grens=function(){
+  const v=Viewer($('#st-grens'),{spin:0}),fb=$('#grFb'),q=$('#grQ'),box=$('#grShapes'),btns={};
+  let mode='A',shape='kubus',mesh=null,target=null,kind='tik',lock=false;
+  const FLAT=['kubus','balk','piramide','cilinder','kegel'];
+  function hl(i,on){const m=Array.isArray(mesh.material)?mesh.material[i]:mesh.material;m.color.setHex(on?0xffe14d:m.userData.base);m.emissive.setHex(on?0x5a4a00:0)}
+  function setShape(n,keepQ){
+    shape=n;v.clear();mesh=makeShape(n);v.root.add(mesh);$('#grBadge').textContent=n;
+    NAMES.forEach(k=>btns[k].classList.toggle('on',k===n));
+    if(!keepQ)ask();
+  }
+  function flatFaces(){return FACE[shape].map((f,i)=>[f,i]).filter(x=>x[0]!=='kromme')}
+  function ask(){
+    lock=false;if(mesh)for(let i=0;i<(Array.isArray(mesh.material)?mesh.material.length:1);i++)hl(i,false);
+    if(mode==='B'){q.textContent='Tik op een grensvlak. Je ziet welke vorm het heeft.';say(fb,shape==='bol'?'Een bol heeft maar één kromme kant.':'Tik op een kant van de '+shape+'.');return}
+    if(shape==='bol'){q.textContent='Een bol heeft geen platte grensvlakken.';say(fb,'Kies een andere figuur.');return}
+    const fl=flatFaces();kind=Math.random()<.5?'tik':'raad';
+    if(kind==='tik'){target=rnd(fl)[0];q.textContent='Tik op een '+target+' van de '+shape+'.';say(fb,'Draai de figuur en tik op het juiste grensvlak.');
+      $$('#grQ + .row').forEach(e=>e.remove())}
+    else{const f=rnd(fl);target=f[0];hl(f[1],true);q.textContent='Welke vorm heeft het gele grensvlak?';say(fb,'Draai de figuur als je het grensvlak niet goed ziet.');
+      const row=document.createElement('div');row.className='row';row.id='grOpts';
+      ['vierkant','rechthoek','driehoek','cirkel'].forEach(k=>mkBtn(row,k,'',function(){
+        if(lock)return;
+        if(k===target){lock=true;addScore(1);this.classList.add('good');say(fb,'Goed! Het grensvlak is een '+target+'.','good');setTimeout(next,1500)}
+        else{this.classList.add('bad');say(fb,'Nog niet goed. Kijk nog eens goed naar de vorm.','bad')}}));
+      q.after(row)}
+  }
+  function next(){const o=$('#grOpts');if(o)o.remove();const n=rnd(FLAT.filter(k=>k!==shape));setShape(n)}
+  v.onPick=hits=>{
+    const h=hits.find(x=>x.object===mesh);if(!h)return;
+    const i=Array.isArray(mesh.material)?h.face.materialIndex:0,f=FACE[shape][i];
+    if(mode==='B'){hl(i,true);setTimeout(()=>hl(i,false),900);
+      say(fb,f==='kromme'?'Dit is een kromme kant. Een kromme kant is geen vierkant, rechthoek, driehoek of cirkel.':'Dit grensvlak is een '+f+'.');return}
+    if(kind!=='tik'||lock||shape==='bol')return;
+    if(f==='kromme'){say(fb,'Dat is een kromme kant. Zoek een platte kant.','bad');return}
+    if(f===target){lock=true;hl(i,true);addScore(1);say(fb,'Goed! Dat is een '+f+'.','good');setTimeout(next,1400)}
+    else{bad_();say(fb,'Dat is een '+f+'. Zoek een '+target+'.','bad')}};
+  function bad_(){}
+  NAMES.forEach(n=>btns[n]=mkBtn(box,n,'',()=>{const o=$('#grOpts');if(o)o.remove();setShape(n)}));
+  function setMode(m){mode=m;$('#grModeA').classList.toggle('on',m==='A');$('#grModeB').classList.toggle('on',m==='B');const o=$('#grOpts');if(o)o.remove();ask()}
+  $('#grModeA').onclick=()=>setMode('A');$('#grModeB').onclick=()=>setMode('B');
+  setShape('kubus');
+};
+
+/* ---------- 4 Uitslagen ---------- */
+function planeMesh(a,b,color){
+  const g=new THREE.PlaneGeometry(a,b);g.rotateX(-Math.PI/2);
+  const m=new THREE.Mesh(g,mat(color));
+  const l=new THREE.LineSegments(new THREE.EdgesGeometry(g),LINE);l.raycast=()=>{};m.add(l);return m}
+const fmt=x=>String(x).replace('.',',');
+
+/* vierkante uitslagen vouwen: elk vlakje hangt aan een buurvlakje */
+function buildNet(cells){
+  const key=c=>c[0]+','+c[1],set=new Map(cells.map(c=>[key(c),c])),seen=new Set(),groups=[],meshes=[];
+  const cols=[0x4f8cff,0xffb703,0xe0457b,0x2ec4b6,0xff7a3d,0x9b5de5];
+  const holder=new THREE.Group();
+  function visit(c,parent,d,po){
+    const g=new THREE.Group(),mo=d?[d[0]*.5,d[1]*.5]:[0,0];
+    if(d){g.position.set(po[0]+d[0]*.5,0,po[1]+d[1]*.5);g.userData.axis=new THREE.Vector3(-d[1],0,d[0])}
+    else g.position.set(c[0],0,c[1]);
+    const m=planeMesh(.97,.97,cols[meshes.length%6]);m.position.set(mo[0],-meshes.length*.004,mo[1]);g.add(m);
+    meshes.push(m);groups.push(g);seen.add(key(c));parent.add(g);
+    for(const dd of [[1,0],[-1,0],[0,1],[0,-1]]){const n=[c[0]+dd[0],c[1]+dd[1]];if(set.has(key(n))&&!seen.has(key(n)))visit(n,g,dd,mo)}
+  }
+  visit(cells[0],holder,null,[0,0]);
+  const xs=cells.map(c=>c[0]),zs=cells.map(c=>c[1]);
+  const out=new THREE.Group();out.add(holder);
+  out.position.set(-(Math.min(...xs)+Math.max(...xs))/2,0,-(Math.min(...zs)+Math.max(...zs))/2);
+  const setFold=t=>groups.forEach(g=>{if(g.userData.axis)g.quaternion.setFromAxisAngle(g.userData.axis,t*Math.PI/2)});
+  setFold(1);out.updateMatrixWorld(true);
+  const ns=new Set(meshes.map(m=>{const n=new THREE.Vector3(0,1,0).transformDirection(m.matrixWorld);return [n.x,n.y,n.z].map(x=>Math.round(x)).join()}));
+  const valid=cells.length===6&&ns.size===6;
+  setFold(0);
+  return {obj:out,setFold,valid};
+}
+const NETS=[
+ [[0,1],[1,1],[2,1],[3,1],[1,0],[1,2]],
+ [[0,0],[1,0],[2,0],[2,1],[3,1],[4,1]],
+ [[0,0],[1,0],[0,1],[1,1],[2,1],[3,1]],
+ [[0,1],[1,1],[2,1],[3,1],[0,0],[2,2]],
+ [[0,1],[1,1],[2,1],[3,1],[4,1],[1,0]],
+ [[0,0],[1,0],[1,1],[2,1],[2,2],[3,2]],
+ [[0,0],[3,0],[0,1],[1,1],[2,1],[3,1]],
+ [[0,0],[1,0],[1,1],[2,1],[3,1],[1,2]]];
+
+inits.uitslag=function(){
+  /* A: balk-bouwer */
+  const v=Viewer($('#st-balk'),{dist:15}),C={a:0x4f8cff,b:0xffb703,c:0xe0457b};
+  let P=null,t=0,tt=0;
+  const rd=id=>+$('#'+id).value;
+  function build(){
+    const w=rd('sw'),h=rd('sh'),d=rd('sd');
+    v.clear();
+    const base=planeMesh(w,d,C.a),front=new THREE.Group(),back=new THREE.Group(),topG=new THREE.Group(),right=new THREE.Group(),left=new THREE.Group();
+    front.position.set(0,0,d/2);const fm=planeMesh(w,h,C.b);fm.position.z=h/2;front.add(fm);
+    back.position.set(0,0,-d/2);const bm=planeMesh(w,h,C.b);bm.position.z=-h/2;back.add(bm);
+    topG.position.set(0,0,-h);const tm=planeMesh(w,d,C.a);tm.position.z=-d/2;topG.add(tm);back.add(topG);
+    right.position.set(w/2,0,0);const rm=planeMesh(h,d,C.c);rm.position.x=h/2;right.add(rm);
+    left.position.set(-w/2,0,0);const lm=planeMesh(h,d,C.c);lm.position.x=-h/2;left.add(lm);
+    base.add(front,back,right,left);v.root.add(base);
+    P={base,front,back,topG,right,left,w,h,d};apply();
+    $('#swv').textContent=fmt(w);$('#shv').textContent=fmt(h);$('#sdv').textContent=fmt(d);
+    const sw=c=>'<span class="sw" style="background:#'+c.toString(16).padStart(6,'0')+'"></span>';
+    $('#balkLegend').innerHTML='<span>'+sw(C.a)+'boven en onder: '+fmt(w)+' × '+fmt(d)+'</span><span>'+sw(C.b)+'voor en achter: '+fmt(w)+' × '+fmt(h)+'</span><span>'+sw(C.c)+'links en rechts: '+fmt(d)+' × '+fmt(h)+'</span>';
+    const cube=w===h&&h===d;
+    $('#balkBadge').textContent=cube?'kubus':'balk';
+    say($('#balkFb'),cube?'Alle zes de grensvlakken zijn gelijke vierkanten. Dit is een kubus!':(w===d||w===h||h===d?'Twee kleuren zijn vierkanten, maar de andere vlakken zijn rechthoeken. Het is een balk. De grensvlakken zijn twee aan twee gelijk.':'Elke kleur komt twee keer voor. De grensvlakken zijn twee aan twee gelijk. Dat herken je aan een balk.'),cube?'good':'');
+  }
+  function apply(){
+    if(!P)return;const k=Math.PI/2*t;
+    P.front.rotation.x=-k;P.back.rotation.x=k;P.topG.rotation.x=k;P.right.rotation.z=k;P.left.rotation.z=-k;
+    P.base.position.y=-P.h/2*t;P.base.position.z=P.d/2*(1-t);
+    $('#sf').value=Math.round(t*100);$('#sfv').textContent=Math.round(t*100)+'%';
+    $('#foldBtn').textContent=tt>.5?'Vouw open':'Vouw dicht';
+  }
+  v.onFrame=()=>{if(t!==tt){const s=Math.sign(tt-t)*Math.min(.02,Math.abs(tt-t));t+=s;if(Math.abs(tt-t)<1e-4)t=tt;apply()}};
+  ['sw','sh','sd'].forEach(id=>$('#'+id).oninput=build);
+  $('#sf').oninput=e=>{t=tt=e.target.value/100;apply()};
+  $('#foldBtn').onclick=()=>{tt=tt>.5?0:1;apply()};
+  $('#cubeBtn').onclick=()=>{['sw','sh','sd'].forEach(id=>$('#'+id).value=2);build()};
+  build();v.reset(.95,-.25);
+
+  /* B: kan dit een kubus worden? */
+  const nv=Viewer($('#st-net'),{dist:10.5}),fb=$('#netFb');
+  let order=[],i=-1,cur=null,nt=0,ntt=0,answered=false;
+  nv.onFrame=()=>{if(cur&&nt!==ntt){nt+=Math.sign(ntt-nt)*Math.min(.018,Math.abs(ntt-nt));if(Math.abs(ntt-nt)<1e-4)nt=ntt;cur.setFold(nt)}};
+  function next(){
+    if(i+1>=order.length){order=shuffle(NETS);i=-1}
+    i++;answered=false;nv.clear();cur=buildNet(order[i]);nv.root.add(cur.obj);nv.reset(1.3,0);nt=ntt=0;
+    $('#netBadge').textContent='Uitslag '+(i+1)+' van '+order.length;
+    $('#netNext').hidden=true;$('#netYes').className='btn';$('#netNo').className='btn';
+    say(fb,'Kijk goed naar de uitslag. Wat denk je?');
+  }
+  function answer(yes){
+    if(answered)return;answered=true;const ok=yes===cur.valid;
+    if(ok)addScore(1);
+    ntt=1;
+    (yes?$('#netYes'):$('#netNo')).classList.add(ok?'good':'bad');
+    say(fb,(ok?'Goed! ':'Helaas. ')+(cur.valid?'Ja, dit is een uitslag van een kubus. Alle zes de vierkanten komen op een andere kant te liggen.':'Nee. Kijk maar: twee vierkanten komen op elkaar te liggen en er blijft een kant open.'),ok?'good':'bad');
+    $('#netNext').hidden=false;
+  }
+  $('#netYes').onclick=()=>answer(true);$('#netNo').onclick=()=>answer(false);
+  $('#netNext').onclick=next;
+  $('#netFold').onclick=()=>{nt=0;ntt=1;cur&&cur.setFold(0)};
+  order=shuffle(NETS);next();
+};
+
+/* ---------- 5 Draadmodel ---------- */
+function wireData(n){
+  let V=[],E=[];
+  if(n==='kubus'||n==='balk'){
+    const s=n==='kubus'?[.85,.85,.85]:[1.35,.7,.85];
+    for(const x of[-1,1])for(const y of[-1,1])for(const z of[-1,1])V.push([x*s[0],y*s[1],z*s[2]]);
+    for(let a=0;a<8;a++)for(let b=a+1;b<8;b++){const d=(a^b);if(d===1||d===2||d===4)E.push([a,b])}
+  }else if(n==='piramide'){
+    V=[[-1,-.9,-1],[1,-.9,-1],[1,-.9,1],[-1,-.9,1],[0,1,0]];E=[[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]];
+  }else{
+    const k=n==='tent'?3:6,r=1.15,h=n==='tent'?1.5:1.3;
+    for(const y of[-h/2,h/2])for(let i=0;i<k;i++){const a=i/k*Math.PI*2+Math.PI/2;V.push([Math.cos(a)*r,y,Math.sin(a)*r])}
+    for(let i=0;i<k;i++){E.push([i,(i+1)%k]);E.push([k+i,k+(i+1)%k]);E.push([i,k+i])}
+  }
+  return {V,E};
+}
+const WIRE=[['kubus','kubus'],['balk','balk'],['piramide','piramide'],['tent','tent (driehoeksprisma)'],['zes','zeskantig prisma']];
+inits.draad=function(){
+  const v=Viewer($('#st-draad'),{dist:8}),box=$('#drShapes'),btns={};
+  const GREY=0x7c8db5;let cur='kubus',data,marks,solved={};
+  const up=new THREE.Vector3(0,1,0);
+  function build(n){
+    cur=n;data=wireData(n==='zes'?'zes':n);v.clear();v.reset(.5,-.5);marks={e:new Set(),v:new Set()};
+    const g=new THREE.Group();
+    data.E.forEach((e,i)=>{
+      const a=new THREE.Vector3(...data.V[e[0]]),b=new THREE.Vector3(...data.V[e[1]]),len=a.distanceTo(b);
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,len,10),new THREE.MeshLambertMaterial({color:GREY}));
+      m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(up,b.clone().sub(a).normalize());
+      m.userData={kind:'e',i};g.add(m)});
+    data.V.forEach((p,i)=>{
+      const m=new THREE.Mesh(new THREE.SphereGeometry(.17,20,14),new THREE.MeshLambertMaterial({color:0x3a4a78}));
+      m.position.set(...p);m.userData={kind:'v',i};g.add(m)});
+    v.root.add(g);
+    NAMEBTN();count();$('#drBadge').textContent=WIRE.find(w=>w[0]===n)[1];
+    say($('#drFb'),'Tik op alle ribben en alle hoekpunten. Tik nog eens om een tik ongedaan te maken.');
+  }
+  function count(){$('#cntE').textContent=marks.e.size;$('#cntV').textContent=marks.v.size}
+  function NAMEBTN(){WIRE.forEach(w=>{btns[w[0]].classList.toggle('on',w[0]===cur);btns[w[0]].textContent=w[1]+(solved[w[0]]?' ✓':'')})}
+  function table(){$('#drTable').innerHTML=WIRE.filter(w=>solved[w[0]]).map(w=>{const d=wireData(w[0]);return '<dt>'+w[1]+'</dt><dd>'+d.E.length+' ribben, '+d.V.length+' hoekpunten</dd>'}).join('')||'<dt>Nog niets</dt><dd>Los een figuur op</dd>'}
+  v.onPick=hits=>{
+    const h=hits.find(x=>x.object.userData.kind);if(!h)return;
+    const {kind,i}=h.object.userData,s=marks[kind];
+    if(s.has(i)){s.delete(i);h.object.material.color.setHex(kind==='e'?GREY:0x3a4a78)}
+    else{s.add(i);h.object.material.color.setHex(kind==='e'?0xffb703:0xe0457b)}
+    count()};
+  $('#drReset').onclick=()=>build(cur);
+  $('#drCheck').onclick=()=>{
+    const E=data.E.length,V=data.V.length,e=marks.e.size,vv=marks.v.size,fb=$('#drFb');
+    if(e===E&&vv===V){
+      if(!solved[cur]){solved[cur]=1;addScore(2)}
+      NAMEBTN();table();
+      const left=WIRE.find(w=>!solved[w[0]]);
+      say(fb,'Goed geteld! Deze figuur heeft '+E+' ribben en '+V+' hoekpunten.'+(left?' Probeer nu: '+left[1]+'.':' Je hebt alle draadmodellen gedaan!'),'good');
+      if(left)setTimeout(()=>build(left[0]),2200);
+    }else{
+      const parts=[];
+      if(e<E)parts.push('Je mist nog '+(E-e)+' '+(E-e===1?'rib':'ribben'));
+      if(vv<V)parts.push('je mist nog '+(V-vv)+' '+(V-vv===1?'hoekpunt':'hoekpunten'));
+      say(fb,(parts.join(' en ')||'Bijna')+'. Draai het model, zodat je ook de achterkant ziet.','bad')}};
+  WIRE.forEach(w=>btns[w[0]]=mkBtn(box,w[1],'',()=>build(w[0])));
+  table();build('kubus');
+};
+
+/* ---------- 6 Nestkastje ---------- */
+inits.nest=function(){
+  const v=Viewer($('#st-nest'),{fov:24,dist:15});
+  const wood=(c)=>{const m=mat(c);return m};
+  function box(w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wood(c));m.position.set(x,y,z);
+    const l=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),LINE);l.raycast=()=>{};m.add(l);return m}
+  const g=new THREE.Group();
+  g.add(box(1.2,1.9,1.2,0xd9a15f,0,-.15,0));
+  g.add(box(1.2,2.7,.1,0xc48a48,0,.25,-.65));
+  const roof=box(1.45,.1,1.7,0xa8692c,0,1.05,.05);roof.rotation.x=.18;g.add(roof);
+  const hole=new THREE.Mesh(new THREE.CircleGeometry(.2,32),new THREE.MeshBasicMaterial({color:0x1b1206}));hole.position.set(0,.45,.605);g.add(hole);
+  g.position.y=-.1;v.root.add(g);v.reset(.35,-.55);
+  const VIEW={voor:[0,0,'vooraanzicht'],zij:[0,-Math.PI/2,'rechter zijaanzicht'],boven:[Math.PI/2,0,'bovenaanzicht'],achter:[0,Math.PI,'achteraanzicht']};
+  function snap(k){const a=VIEW[k];v.goal=new THREE.Quaternion().setFromEuler(new THREE.Euler(a[0],a[1],0));$('#nestBadge').textContent=a[2]}
+  $$('[data-view]').forEach(b=>b.onclick=()=>snap(b.dataset.view));
+  const S='fill="var(--stage)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"';
+  const PL={
+    A:'<rect x="38" y="6" width="24" height="88" '+S+'/><rect x="42" y="14" width="16" height="6" fill="var(--muted)"/>',
+    B:'<rect x="26" y="16" width="48" height="68" '+S+'/><circle cx="50" cy="38" r="8" fill="var(--ink)"/>',
+    C:'<polygon points="22,22 78,40 78,86 22,86" '+S+'/>',
+    D:'<polygon points="22,40 78,22 78,86 22,86" '+S+'/>',
+    E:'<rect x="18" y="36" width="64" height="32" '+S+'/><rect x="24" y="30" width="12" height="7" fill="var(--muted)"/>',
+    F:'<rect x="26" y="26" width="48" height="48" '+S+'/>'};
+  const pb=$('#nestPlanks');
+  Object.keys(PL).forEach(k=>{const b=document.createElement('button');b.dataset.k=k;
+    b.innerHTML='<svg viewBox="0 0 100 100" aria-label="plankje '+k+'">'+PL[k]+'<text x="6" y="14" font-size="14" font-weight="800" fill="var(--accent)" font-family="Fredoka,sans-serif">'+k+'</text></svg>';
+    b.onclick=()=>pick(k);pb.appendChild(b)});
+  const QS=[['boven','E','bovenaanzicht'],['voor','B','vooraanzicht'],['zij','D','rechter zijaanzicht'],['achter','A','achterkant']];
+  let qi=0,order=shuffle(QS),lock=false;
+  function ask(){lock=false;const q=order[qi%order.length];snap(q[0]);
+    $('#nestQ').textContent='Welk plankje hoort bij het '+q[2]+'?';say($('#nestFb'),'Kijk naar het nestkastje en tik op het juiste plankje.')}
+  function pick(k){
+    if(lock)return;const q=order[qi%order.length];
+    if(k===q[1]){lock=true;addScore(1);say($('#nestFb'),'Goed! Plankje '+k+' hoort bij het '+q[2]+'.','good');qi++;if(qi%order.length===0)order=shuffle(QS);setTimeout(ask,1600)}
+    else say($('#nestFb'),'Nog niet goed. Kijk nog eens goed naar het nestkastje.','bad')}
+  ask();
+};
+
+/* ---------- start ---------- */
+openTab((location.hash||'#ontdek').slice(1));
+window.addEventListener('hashchange',()=>openTab((location.hash||'#ontdek').slice(1)));
+
+
+  }
+  function load(i){
+    if(window.THREE){boot();return}
+    if(i>=srcs.length){document.getElementById('loadErr').hidden=false;return}
+    var s=document.createElement('script');s.src=srcs[i];
+    s.onload=function(){window.THREE?boot():load(i+1)};
+    s.onerror=function(){load(i+1)};
+    document.head.appendChild(s);
+  }
+  load(0);
+})();
+</script>
+
+</body></html>

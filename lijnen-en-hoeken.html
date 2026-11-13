@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wiskunde: Lijnen en hoeken</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8f3ff;--ink:#17324d;--soft:#4b6580;--blue:#2a6fdb;--blue2:#1d57b3;--orange:#e8870a;--good:#1d8a4a;--goodbg:#dff3e6;--oops:#c0392b;--oopsbg:#fde7e3;--card:#fff;--line:#c4dcf2;--yel:#ffc533}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.5 Lexend,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:12px 16px 60px}
+header.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.who{display:flex;align-items:center;gap:10px;font-weight:600;flex:1;min-width:140px}.who svg{width:44px;height:44px}
+.chip{border:0;border-radius:999px;padding:8px 14px;font:600 14px Lexend,sans-serif;background:var(--blue);color:#fff;cursor:pointer;min-height:40px}
+.chip.pts{background:var(--yel);color:#4a3200;cursor:default}
+.prog{height:12px;border-radius:99px;background:#c4dcf2;overflow:hidden;margin:6px 0 14px}.prog i{display:block;height:100%;background:var(--good);width:0;transition:width .3s}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px 18px 20px;margin-bottom:14px}
+h1{font-size:1.7rem;line-height:1.2;margin:.2em 0 .4em}h2{font-size:1.4rem;margin:.2em 0 .5em}
+p{margin:.5em 0}.note{color:var(--soft);font-size:.9rem}
+.btn{border:0;border-radius:14px;padding:12px 20px;font:600 1.05rem Lexend,sans-serif;background:var(--blue);color:#fff;cursor:pointer;min-height:50px;box-shadow:0 3px 0 var(--blue2)}
+.btn:active{transform:translateY(2px);box-shadow:none}.btn:disabled{opacity:.5;box-shadow:none;cursor:default}
+.btn.alt{background:#fff;color:var(--blue);border:2px solid var(--blue);box-shadow:none}.btn.small{min-height:40px;padding:6px 14px;font-size:.95rem}
+.btn.good{background:var(--good);box-shadow:0 3px 0 #146b37}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}.row.sp{justify-content:space-between}
+.qhead{display:flex;justify-content:space-between;color:var(--soft);font-size:.9rem;font-weight:600}
+.q{font-size:1.2rem;font-weight:600}
+.opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}@media(min-width:520px){.opts.two{grid-template-columns:1fr 1fr}}
+.opt{border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;font:600 1.05rem Lexend,sans-serif;color:var(--ink);cursor:pointer;text-align:left;min-height:52px}
+.opt:hover{border-color:var(--blue)}.opt.ok{background:var(--goodbg);border-color:var(--good)}.opt.no{background:var(--oopsbg);border-color:var(--oops);opacity:.8}
+.numin{display:flex;gap:10px;margin-top:12px}.numin input{font:700 1.6rem Lexend,sans-serif;width:140px;padding:8px 12px;border:3px solid var(--line);border-radius:14px;text-align:center;color:var(--ink)}
+.fb{border-radius:14px;padding:12px 14px;margin-top:12px;font-weight:600}.fb.ok{background:var(--goodbg);color:#0f5a2c}.fb.no{background:var(--oopsbg);color:#7a2118}.fb.tip{background:#fff6d9;color:#5a4300;font-weight:400}
+.say{background:#f1f7ff;border-left:5px solid var(--blue);border-radius:10px;padding:10px 14px;margin:12px 0}
+.kw{background:#fff0b3;border-radius:6px;padding:0 6px;font-weight:700}
+.big{font-weight:700;font-size:1.3em}
+svg.fig,.geo svg{display:block;width:100%;max-width:560px;margin:8px auto;touch-action:manipulation}
+.fig .vis{stroke:var(--ink);stroke-width:4;stroke-linecap:round;fill:none}
+.fig .pg{fill:#fff;stroke-linejoin:round}
+.fig .lab{font:700 20px Lexend,sans-serif;fill:var(--ink)}.fig .lab.s{font-size:16px;fill:var(--soft)}
+.fig .hit{stroke:transparent;stroke-width:26;fill:transparent;cursor:pointer;stroke-linecap:round}
+.fig .dotv{fill:var(--ink)}.fig .rm{fill:none;stroke:var(--oops);stroke-width:2.5}
+.fig .wedge{fill:rgba(42,111,219,.22);stroke:var(--blue);stroke-width:2}
+.it{cursor:pointer}.it:hover .vis{stroke:var(--blue)}.it.sel .vis{stroke:var(--oops);stroke-width:7}.it.sel .pg{fill:#ffd9d4}.it.sel .dotv{fill:var(--oops)}
+.it.show .vis{stroke:var(--good);stroke-width:7}.it.show .pg{fill:#c8efd5}.it.show .dotv{fill:var(--good)}
+.geo .refl,.fig .refl{stroke:var(--blue);stroke-width:4;fill:none}
+input[type=range]{width:100%;height:44px;accent-color:var(--blue)}
+.geo{background:#fff;border:2px solid var(--line);border-radius:14px;padding:4px}.geo svg{max-width:none;touch-action:none;user-select:none;-webkit-user-select:none}
+.geo .tri{fill:rgba(120,190,255,.38);stroke:#2a6fdb;stroke-width:3;stroke-linejoin:round;cursor:grab}
+.geo .ed{stroke:transparent;stroke-width:26;stroke-linecap:round;cursor:pointer}.geo .edv{stroke:#1d57b3;stroke-width:3;pointer-events:none}.geo .edv.al{stroke:var(--good);stroke-width:5}
+.geo .arc{fill:none;stroke:#e5a400;stroke-width:3;pointer-events:none}.geo .tk{stroke:#1d57b3;stroke-width:1.5;pointer-events:none}
+.geo .dr{stroke:var(--oops);stroke-width:3;stroke-linecap:round}.geo .rv{stroke:var(--good);stroke-width:4;stroke-dasharray:8 6}
+.geo .rot{fill:var(--yel);stroke:#a97c00;stroke-width:2;cursor:grab}.geo text{pointer-events:none;font-family:Lexend,sans-serif}
+.lv{display:grid;gap:10px;margin-top:10px}.lvb{display:flex;align-items:center;gap:12px;border:2px solid var(--line);background:#fff;border-radius:16px;padding:12px 14px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.lvb:hover{border-color:var(--blue)}.lvb b{display:block}.lvb small{color:var(--soft)}.lvn{width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;flex:none}.lvb.done .lvn{background:var(--good)}
+.stars{font-size:2.4rem;text-align:center;letter-spacing:6px;color:#e5a400}
+input.nm{font:600 1.2rem Lexend,sans-serif;width:100%;padding:12px;border:3px solid var(--line);border-radius:14px;color:var(--ink)}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}.pop{animation:pop .35s}
+</style></head><body><a href="index.html" style="display:inline-block;margin:10px 14px 0;color:#2a6fdb;font:700 15px/1.2 system-ui,sans-serif;text-decoration:none">← Alle lessen</a>
+<div class="wrap">
+<header class="bar" id="bar" hidden>
+ <div class="who"><span id="av"></span><span id="nm"></span></div>
+ <button class="chip" id="tv" type="button"></button><button class="chip" id="ts" type="button"></button><span class="chip pts" id="pt">0 punten</span>
+</header>
+<div class="prog" id="pg" hidden><i></i></div>
+<main id="stage"></main>
+</div>
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='wiskunde-hoeken-v1';
+let DB={name:'',res:{},voice:true,sound:true,explain:false};
+try{const r=localStorage.getItem(KEY);if(r)DB=Object.assign(DB,JSON.parse(r))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+/* ---------- geluid en stem ---------- */
+let AC=null;
+function tone(f,t,d,type,g){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),v=AC.createGain();o.type=type||'sine';o.frequency.value=f;v.gain.setValueAtTime(0,AC.currentTime+t);v.gain.linearRampToValueAtTime(g||.12,AC.currentTime+t+.02);v.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t+d);o.connect(v);v.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d+.05)}catch(e){}}
+function sfx(k){if(!DB.sound)return;
+  if(k==='ok'){[523,659,784].forEach((f,i)=>tone(f,i*.1,.25))}
+  else if(k==='no'){tone(300,0,.18,'triangle',.08);tone(260,.14,.22,'triangle',.08)}
+  else if(k==='tap')tone(620,0,.07,'sine',.07);
+  else if(k==='snap')tone(880,0,.09,'triangle',.08);
+  else if(k==='pen')tone(200,0,.12,'sawtooth',.04);
+  else if(k==='win'){[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i*.12,.3))}}
+let VOICE=null;
+function stopSpeech(){try{speechSynthesis.cancel()}catch(e){}}
+function speak(t){if(!DB.voice||!t)return;try{stopSpeech();const u=new SpeechSynthesisUtterance(t);u.lang='nl-NL';u.rate=.85;const vs=speechSynthesis.getVoices().filter(v=>/^nl/i.test(v.lang));if(vs[0])u.voice=vs[0];speechSynthesis.speak(u)}catch(e){}}
+function listenBtn(t){const b=document.createElement('button');b.type='button';b.className='btn alt small';b.textContent='\u{1F50A} Lees voor';b.onclick=()=>{const was=DB.voice;DB.voice=true;speak(t);DB.voice=was};return b}
+function mascot(){return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#ffc533" stroke="#c98f00" stroke-width="4"/><circle cx="35" cy="42" r="6" fill="#17324d"/><circle cx="65" cy="42" r="6" fill="#17324d"/><path d="M28 62q22 22 44 0" fill="none" stroke="#17324d" stroke-width="6" stroke-linecap="round"/></svg>'}
+/* ---------- rekenhulp ---------- */
+const rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI,dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const norm180=a=>((a%180)+180)%180;
+function angDiff180(a,b){const d=Math.abs(norm180(a)-norm180(b));return Math.min(d,180-d)}
+const dirv=a=>[Math.cos(rad(a)),Math.sin(rad(a))];
+const sgnDist=(p,o,a)=>{const u=dirv(a);return -(p[0]-o[0])*u[1]+(p[1]-o[1])*u[0]};   // + = rechts van de lijn (scherm)
+const lineDist=(p,o,a)=>Math.abs(sgnDist(p,o,a));
+function clipLine(p,a,W,H){const u=dirv(a);let t0=-1e9,t1=1e9;
+  [[0,W],[1,H]].forEach(([i,m])=>{if(Math.abs(u[i])<1e-9){return}const s=(0-p[i])/u[i],e=(m-p[i])/u[i];t0=Math.max(t0,Math.min(s,e));t1=Math.min(t1,Math.max(s,e))});
+  return [[p[0]+u[0]*t0,p[1]+u[1]*t0],[p[0]+u[0]*t1,p[1]+u[1]*t1]]}
+const unit=(a,b)=>{const d=dist(a,b)||1;return [(b[0]-a[0])/d,(b[1]-a[1])/d]};
+/* ---------- figuren ---------- */
+const svgWrap=(w,h,inner,cls)=>'<svg class="fig '+(cls||'')+'" viewBox="0 0 '+w+' '+h+'" role="img" aria-label="Figuur">'+inner+'</svg>';
+function segm(id,a,b,o){o=o||{};const l=(c,x)=>'<line class="'+c+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"'+(x||'')+'/>';
+  const st=o.col?' style="stroke:'+o.col+(o.w?';stroke-width:'+o.w:'')+'"':'';
+  return id?'<g class="it" data-id="'+id+'">'+l('vis',st)+l('hit')+'</g>':l('vis',st)}
+function dot(id,p,r){r=r||6;const c='<circle class="dotv" cx="'+p[0]+'" cy="'+p[1]+'" r="'+r+'"/>';
+  return id?'<g class="it" data-id="'+id+'"><circle class="hit" cx="'+p[0]+'" cy="'+p[1]+'" r="20"/>'+c+'</g>':c}
+const lab=(t,p,an,cl)=>'<text class="lab '+(cl||'')+'" x="'+p[0]+'" y="'+p[1]+'" text-anchor="'+(an||'middle')+'">'+t+'</text>';
+function poly(id,pts,o){o=o||{};const g='<polygon class="vis pg" points="'+pts.map(p=>p.join(',')).join(' ')+'"'+(o.fill?' style="fill:'+o.fill+'"':'')+'/>';return id?'<g class="it" data-id="'+id+'">'+g+'</g>':g}
+function rmark(P,u,v,s){s=s||15;const a=[P[0]+u[0]*s,P[1]+u[1]*s],b=[a[0]+v[0]*s,a[1]+v[1]*s],c=[P[0]+v[0]*s,P[1]+v[1]*s];return '<path class="rm" d="M'+a+' L'+b+' L'+c+'"/>'}
+function tickMark(a,b,n){const m=[(a[0]+b[0])/2,(a[1]+b[1])/2],u=unit(a,b),nv=[-u[1],u[0]];let s='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*7;s+='<line class="rm" x1="'+(m[0]+u[0]*o+nv[0]*8)+'" y1="'+(m[1]+u[1]*o+nv[1]*8)+'" x2="'+(m[0]+u[0]*o-nv[0]*8)+'" y2="'+(m[1]+u[1]*o-nv[1]*8)+'"/>'}return s}
+function angPt(V,ang,len){return [V[0]+len*Math.cos(rad(ang)),V[1]-len*Math.sin(rad(ang))]}
+function wedge(V,a0,a1,r){const p0=angPt(V,a0,r),p1=angPt(V,a1,r);return '<path class="wedge" d="M'+V+' L'+p0+' A'+r+' '+r+' 0 '+(a1-a0>180?1:0)+' 0 '+p1+' Z"/>'}
+function angFig(a,o){o=o||{};const V=[70,170],r=o.r||150;
+  return svgWrap(300,200,wedge(V,0,a,o.wr||44)+segm(null,V,angPt(V,0,r))+segm(null,V,angPt(V,a,r))+dot(null,V)+(o.lab?lab(o.lab,[V[0]-4,V[1]+28]):''),'ang')}
+/* ---------- vaste figuren ---------- */
+const FP={F:[50,50],E:[180,50],D:[310,50],A:[50,170],B:[180,170],C:[310,170]};
+function fenceFig(){const P=FP;let s='';
+  [['AC','A','C'],['DF','F','D'],['AF','A','F'],['BE','B','E'],['CD','C','D'],['AE','A','E'],['BF','B','F'],['BD','B','D'],['CE','C','E']].forEach(([id,a,b])=>s+=segm(id,P[a],P[b]));
+  return svgWrap(360,220,s+Object.keys(P).map(k=>dot(null,P[k],5)).join('')+lab('F',[34,42])+lab('E',[180,36])+lab('D',[326,42])+lab('A',[34,196])+lab('B',[180,198])+lab('C',[326,196]),'fence')}
+const TZ={A:[50,170],B:[260,170],C:[260,50],D:[120,50]};
+function trapFig(o){o=o||{};const P=TZ;let s='';
+  [['AB','A','B'],['BC','B','C'],['CD','C','D'],['AD','A','D']].forEach(([id,a,b])=>s+=segm(o.pick?id:null,P[a],P[b]));
+  s+=rmark(P.B,[-1,0],[0,-1])+rmark(P.C,[-1,0],[0,1]);
+  return svgWrap(320,220,s+lab('A',[34,196])+lab('B',[272,196])+lab('C',[276,42])+lab('D',[108,40]),'trap')}
+const RC={A:[60,170],B:[260,170],C:[260,60],D:[60,60]};
+function rectFig(o){o=o||{};const P=RC;let s='';
+  [['AB','A','B'],['BC','B','C'],['CD','C','D'],['AD','A','D']].forEach(([id,a,b])=>s+=segm(o.pick?id:null,P[a],P[b]));
+  if(o.diag)[['AC','A','C'],['BD','B','D']].forEach(([id,a,b])=>s+=segm(o.pick?id:null,P[a],P[b],{col:o.pick?null:'#e8870a'}));
+  if(o.right)Object.keys(P).forEach(k=>{});
+  return svgWrap(320,220,s+lab('A',[44,196])+lab('B',[276,196])+lab('C',[278,50])+lab('D',[44,50]),'rect')}
+function twoLines(a1,a2,o){o=o||{};const C=[160,100],l=(a,id,c)=>{const e1=[C[0]+130*Math.cos(rad(a)),C[1]-130*Math.sin(rad(a))],e2=[C[0]-130*Math.cos(rad(a)),C[1]+130*Math.sin(rad(a))];return segm(null,e1,e2,{col:c})};
+  return svgWrap(320,200,l(a1,'p','#2a6fdb')+l(a2,'q','#e8870a')+lab('p',angPt(C,a1,146),'middle')+lab('q',angPt(C,a2,146),'middle'),'two')}
+function parLines(tilt){return svgWrap(320,170,segm(null,[30,50],[290,50],{col:'#2a6fdb'})+segm(null,[30,125+tilt*-0],[290,125-tilt],{col:'#e8870a'})+lab('p',[16,56],'middle')+lab('q',[16,131],'middle'),'two')}
+/* ---------- eenvoudige vraagonderdelen ---------- */
+function mcW(box,opts,correct,check,o){o=o||{};
+  box.innerHTML='<div class="opts '+(o.two?'two':'')+'">'+opts.map(v=>'<button class="opt" type="button" data-v="'+esc(v)+'">'+v+'</button>').join('')+'</div>';
+  const bs=$$('.opt',box);
+  bs.forEach(b=>b.onclick=()=>{sfx('tap');const ok=b.dataset.v===String(correct);b.classList.add(ok?'ok':'no');b.disabled=true;check(ok);if(ok)bs.forEach(x=>x.disabled=true)});
+  return {reveal(){bs.forEach(b=>{b.disabled=true;if(b.dataset.v===String(correct))b.classList.add('ok')})}}}
+function numW(box,correct,check,unit){
+  box.innerHTML='<div class="numin"><input id="nv" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Jouw antwoord"><button class="btn" id="nk" type="button">Klaar</button></div>'+(unit?'<p class="note">'+unit+'</p>':'');
+  const i=$('#nv',box),b=$('#nk',box);
+  const go=()=>{const t=i.value.trim();if(!t)return;const ok=Number(t)===correct;check(ok);if(!ok)i.select()};
+  b.onclick=go;i.onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>{try{i.focus({preventScroll:true})}catch(e){}},60);
+  return {reveal(){i.value=correct;i.disabled=true;b.disabled=true}}}
+function pickW(box,svg,okf,check,answer,extra){
+  box.innerHTML=svg+'<div class="row"><button class="btn" id="pk" type="button">Klaar</button><button class="btn alt small" id="pc" type="button">Wis keuze</button></div>';
+  const sel=new Set(),items=$$('.it',box);
+  items.forEach(g=>g.addEventListener('click',()=>{sfx('tap');const id=g.dataset.id;if(sel.has(id)){sel.delete(id);g.classList.remove('sel')}else{sel.add(id);g.classList.add('sel')}}));
+  $('#pc',box).onclick=()=>{sel.clear();items.forEach(g=>g.classList.remove('sel'))};
+  $('#pk',box).onclick=()=>{if(!sel.size)return;check(okf(sel))};
+  return {reveal(){items.forEach(g=>{g.classList.remove('sel');if(answer.includes(g.dataset.id))g.classList.add('show')});$('#pk',box).disabled=true}}}
+const sameSet=(s,arr)=>s.size===arr.length&&arr.every(x=>s.has(x));
+/* ---------- hoek / lijnen draaien met schuifbalk ---------- */
+const hoekNaam=a=>a<89?'scherpe hoek':a<=91?'rechte hoek':a<179?'stompe hoek':'gestrekte hoek';
+function angleW(box,o,check){
+  o=o||{};let a=o.start==null?30:o.start;const mode=o.mode||'hoek';
+  box.innerHTML='<div class="fig-wrap"><svg class="fig" viewBox="0 0 360 230" id="as" role="img" aria-label="Figuur"></svg></div><label class="note" for="asl">Schuif om te draaien:</label><input id="asl" type="range" min="0" max="180" step="1" value="'+a+'"><p class="big" id="ard" style="text-align:center;margin:4px 0"></p><div class="row"><button class="btn" id="ack" type="button">'+(o.btn||'Klaar')+'</button></div>';
+  const svg=$('#as',box),rd=$('#ard',box);
+  function paint(){let s='';const good=o.live&&o.goal(a);
+    if(mode==='hoek'){const V=[60,190];s=wedge(V,0,Math.max(a,0.01),50)+segm(null,V,[V[0]+250,V[1]])+segm(null,V,angPt(V,a,230),{col:'#e8870a'})+dot(null,V,7)+(o.live?lab('hoekpunt',[V[0]+2,V[1]+30],'middle','s'):'')+(o.live?lab('been',[V[0]+170,V[1]-12],'middle','s')+lab('been',angPt(V,a,150).map((v,i)=>v+(i?-10:10)),'middle','s'):'');
+      if(a===90&&o.live)s+=rmark(V,[1,0],[0,-1],22)}
+    else if(mode==='lines'){const C=[180,115];s=segm(null,[20,115],[340,115],{col:'#2a6fdb'})+segm(null,angPt(C,a,160),angPt(C,a+180,160),{col:'#e8870a'});
+      if(o.live&&a===90)s+=rmark(C,[1,0],[0,-1],20)+lab('⊥',[C[0]+34,C[1]-30]);
+      s+=dot(null,C,5)}
+    else{s=segm(null,[20,65],[340,65],{col:'#2a6fdb'})+segm(null,angPt([180,165],a,170),angPt([180,165],a+180,170),{col:'#e8870a'})+lab('p',[12,58])+lab('q',[12,172]);
+      if(o.live&&(a<=2||a>=178))s+=lab('∥',[180,115])}
+    if(good)s+='<circle cx="326" cy="26" r="16" fill="#1d8a4a"/><path d="M318 26l6 7 12-14" stroke="#fff" stroke-width="4" fill="none"/>';
+    svg.innerHTML=s;
+    rd.textContent=o.show==='deg'?a+'°':(o.show==='name'?hoekNaam(a)+' ('+a+'°)':'')}
+  $('#asl',box).oninput=e=>{a=+e.target.value;paint();if(a===90||a===0)sfx('snap')};
+  $('#ack',box).onclick=()=>{check(!!o.goal(a),a)};
+  paint();return {get:()=>a,reveal(){a=o.reveal==null?a:o.reveal;$('#asl',box).value=a;paint();$('#ack',box).disabled=true}}}
+/* ---------- punten verbinden (diagonalen tekenen) ---------- */
+function connectW(box,T,check){
+  const drawn=new Set();let first=null,s;
+  const key=(a,b)=>[a,b].sort().join('');
+  box.innerHTML='<div id="cw"></div><div class="row"><button class="btn" id="ck" type="button">Klaar</button><button class="btn alt small" id="cc" type="button">Wis mijn lijnen</button></div>';
+  const cw=$('#cw',box);
+  function paint(rev){let s='';T.sides.forEach(([a,b])=>s+=segm(null,T.pts[a],T.pts[b]));
+    [...drawn].forEach(k=>s+=segm(null,T.pts[k[0]],T.pts[k[1]],{col:'#c0392b',w:5}));
+    if(rev)T.need.forEach(k=>s+=segm(null,T.pts[k[0]],T.pts[k[1]],{col:'#1d8a4a',w:6}));
+    Object.keys(T.pts).forEach(k=>{s+=dot(k,T.pts[k],7);s+=lab(k,[T.pts[k][0]+(T.off[k]||[0,0])[0],T.pts[k][1]+(T.off[k]||[0,0])[1]])});
+    cw.innerHTML=svgWrap(T.w,T.h,s,'conn');
+    $$('.it',cw).forEach(g=>{if(g.dataset.id===first)g.classList.add('sel');g.addEventListener('click',()=>{sfx('tap');const id=g.dataset.id;
+      if(!first){first=id}else if(first===id){first=null}else{const k=key(first,id);if(!T.sides.some(([a,b])=>key(a,b)===k)){if(drawn.has(k))drawn.delete(k);else{drawn.add(k);sfx('pen')}}first=null}paint()})})}
+  $('#cc',box).onclick=()=>{drawn.clear();first=null;paint()};
+  $('#ck',box).onclick=()=>{check(drawn.size===T.need.length&&T.need.every(k=>drawn.has(k)))};
+  paint();return {reveal(){drawn.clear();first=null;paint(true);$('#ck',box).disabled=true}}}
+/* ---------- rooster: vierkant tekenen ---------- */
+function gridW(box,T,check){
+  const cols=T.cols||8,rows=T.rows||7,g=46,off=[34,30];let taps=[];
+  const xy=([c,r])=>[off[0]+c*g,off[1]+r*g];
+  box.innerHTML='<div id="gw"></div><div class="row"><button class="btn" id="gk" type="button">Klaar</button><button class="btn alt small" id="gc" type="button">Wis</button></div>';
+  const gw=$('#gw',box);
+  function paint(rev){let s='';
+    for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){const p=xy([c,r]);s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#8aa3b8"/>'}
+    const path=[T.P,...taps];
+    if(rev){const n=T.n,q=[[T.P[0]+n,T.P[1]],[T.P[0]+n,T.P[1]-n],[T.P[0],T.P[1]-n]];s+='<polygon points="'+[T.P,...q].map(p=>xy(p).join(',')).join(' ')+'" fill="rgba(29,138,74,.18)" stroke="#1d8a4a" stroke-width="5"/>'}
+    else if(path.length>1)s+='<polyline points="'+path.concat(taps.length===3?[T.P]:[]).map(p=>xy(p).join(',')).join(' ')+'" fill="none" stroke="#c0392b" stroke-width="5" stroke-linejoin="round"/>';
+    [T.P,...taps].forEach((p,i)=>{const q=xy(p);s+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="8" fill="'+(i?'#c0392b':'#17324d')+'"/><text x="'+(q[0]+12)+'" y="'+(q[1]-10)+'" class="lab" style="font-size:20px">'+'PQRS'[i]+'</text>'});
+    s+='<rect id="gh" x="0" y="0" width="'+(off[0]*2+(cols-1)*g)+'" height="'+(off[1]*2+(rows-1)*g)+'" fill="transparent"/>';
+    gw.innerHTML=svgWrap(off[0]*2+(cols-1)*g,off[1]*2+(rows-1)*g,s,'grid');
+    const sv=$('svg',gw);$('#gh',sv).onclick=e=>{const r=sv.getBoundingClientRect(),vb=sv.viewBox.baseVal,x=(e.clientX-r.left)/r.width*vb.width,y=(e.clientY-r.top)/r.height*vb.height;
+      const c=Math.round((x-off[0])/g),rr=Math.round((y-off[1])/g);if(c<0||rr<0||c>=cols||rr>=rows||taps.length>=3)return;if(c===T.P[0]&&rr===T.P[1])return;sfx('pen');taps.push([c,rr]);paint()}}
+  $('#gc',box).onclick=()=>{taps=[];paint()};
+  $('#gk',box).onclick=()=>{if(taps.length<3)return check(false);const v=[T.P,...taps];let ok=true;
+    for(let i=0;i<4;i++){const a=v[i],b=v[(i+1)%4],c=v[(i+2)%4];const l=Math.hypot(b[0]-a[0],b[1]-a[1]);if(l!==T.n)ok=false;if((b[0]-a[0])*(c[0]-b[0])+(b[1]-a[1])*(c[1]-b[1])!==0)ok=false}check(ok)};
+  paint();return {reveal(){taps=[];paint(true);$('#gk',box).disabled=true}}}
+/* ---------- geodriehoek ---------- */
+function geoW(box,T,check,opt){
+  opt=opt||{};const W=600,H=420,L=200,refs=T.lines||[],pts=T.pts||[];
+  const S={cx:T.start?T.start[0]:150,cy:T.start?T.start[1]:210,th:T.th0||0,drawn:[]};let al=[false,false,false],revealed=false;
+  box.innerHTML='<div class="geo"><svg viewBox="0 0 '+W+' '+H+'" id="gs" role="img" aria-label="Tekenvel met geodriehoek"><defs><pattern id="gp" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="1.4" fill="#cfe0ef"/></pattern></defs><rect width="'+W+'" height="'+H+'" fill="url(#gp)"/><g id="gr"></g><g id="gd"></g><g id="gt"></g></svg></div>'+
+   '<div class="row"><button class="btn alt small" id="gl" type="button" aria-label="Draai naar links">↺ Links</button><button class="btn alt small" id="gR" type="button" aria-label="Draai naar rechts">↻ Rechts</button><button class="btn alt small" id="gw" type="button">Wis lijnen</button>'+(opt.noCheck?'':'<button class="btn" id="gk" type="button">Klaar</button>')+'</div><p class="note" id="gm" style="min-height:1.4em"></p>';
+  const svg=$('#gs',box),gr=$('#gr',box),gd=$('#gd',box),gt=$('#gt',box);
+  const f=n=>Math.round(n*10)/10;
+  const geom=()=>{const u=dirv(S.th),v=[-u[1],u[0]],R=[S.cx-L/3*(u[0]+v[0]),S.cy-L/3*(u[1]+v[1])];return {u,v,R,A:[R[0]+L*u[0],R[1]+L*u[1]],B:[R[0]+L*v[0],R[1]+L*v[1]]}};
+  const edges=()=>{const g=geom();return [{o:g.R,a:S.th},{o:g.R,a:S.th+90},{o:g.A,a:S.th+135}]};
+  function ln(o,a,cls,extra){const c=clipLine(o,a,W,H);return '<line class="'+cls+'" x1="'+f(c[0][0])+'" y1="'+f(c[0][1])+'" x2="'+f(c[1][0])+'" y2="'+f(c[1][1])+'"'+(extra||'')+'/>'}
+  function paintRef(){let s='';refs.forEach(r=>{s+=ln(r.p,r.a,'refl','');if(r.label){const q=clipLine(r.p,r.a,W-30,H-30)[1];s+='<text x="'+f(Math.min(W-24,q[0]))+'" y="'+f(q[1]-10)+'" font-size="22" font-weight="700" fill="#2a6fdb">'+r.label+'</text>'}});
+    pts.forEach(p=>{s+='<circle cx="'+p.xy[0]+'" cy="'+p.xy[1]+'" r="7" fill="#e8870a" stroke="#fff" stroke-width="2"/><text x="'+(p.xy[0]+11)+'" y="'+(p.xy[1]-9)+'" font-size="22" font-weight="700" fill="#17324d">'+(p.label||'')+'</text>'});
+    gr.innerHTML=s}
+  function evalGoals(){const per=(T.goals||[]).map(g=>{const ref=refs[g.ref],want=ref.a+(g.kind==='perp'?90:0);return S.drawn.some(d=>angDiff180(d.a,want)<3&&lineDist(g.via,d.o,d.a)<9)});return {per,all:per.length>0&&per.every(Boolean)}}
+  function paintDrawn(){let s='';S.drawn.forEach(d=>s+=ln(d.o,d.a,'dr',''));
+    if(revealed)(T.goals||[]).forEach(g=>{s+=ln(g.via,refs[g.ref].a+(g.kind==='perp'?90:0),'rv','')});
+    if(opt.live){const e=evalGoals();(T.goals||[]).forEach((g,i)=>{if(e.per[i])s+='<circle cx="'+(g.via[0]+22)+'" cy="'+(g.via[1]+22)+'" r="13" fill="#1d8a4a"/><path d="M'+(g.via[0]+16)+' '+(g.via[1]+22)+'l5 6 9-11" stroke="#fff" stroke-width="3.5" fill="none"/>'});
+      $('#gm',box).textContent=e.all?'Goed gedaan! Dit is precies goed getekend.':''}
+    gd.innerHTML=s}
+  function lineHits(o,a){return pts.some(p=>lineDist(p.xy,o,a)<1.6)||refs.some(r=>angDiff180(a,r.a)<.7&&lineDist(r.p,o,a)<1.6)}
+  function paintTri(){const g=geom(),E=edges();al=[lineHits(E[0].o,E[0].a),lineHits(E[1].o,E[1].a),false];
+    let s='<polygon class="tri" data-r="body" points="'+[g.R,g.A,g.B].map(p=>f(p[0])+','+f(p[1])).join(' ')+'"/>';
+    const M=[(g.A[0]+g.B[0])/2,(g.A[1]+g.B[1])/2],hd=unit(g.A,g.B),w=unit(M,g.R),rr=82;let d='';for(let t=0;t<=180;t+=10){const c=Math.cos(rad(t)),sn=Math.sin(rad(t));d+=(t?'L':'M')+f(M[0]+rr*(c*hd[0]+sn*w[0]))+' '+f(M[1]+rr*(c*hd[1]+sn*w[1]))}
+    s+='<path class="arc" d="'+d+'"/>';
+    for(let i=1;i<10;i++){const t=i*20,big=i%5===0?16:9;[[g.u,g.v],[g.v,g.u]].forEach(([along,inw])=>{const p=[g.R[0]+along[0]*t,g.R[1]+along[1]*t];s+='<line class="tk" x1="'+f(p[0])+'" y1="'+f(p[1])+'" x2="'+f(p[0]+inw[0]*big)+'" y2="'+f(p[1]+inw[1]*big)+'"/>'})}
+    [[g.R,g.A,0],[g.R,g.B,1],[g.A,g.B,2]].forEach(([p,q,i])=>{s+='<line class="edv'+(al[i]?' al':'')+'" x1="'+f(p[0])+'" y1="'+f(p[1])+'" x2="'+f(q[0])+'" y2="'+f(q[1])+'"/><line class="ed" data-r="edge" data-e="'+i+'" x1="'+f(p[0])+'" y1="'+f(p[1])+'" x2="'+f(q[0])+'" y2="'+f(q[1])+'"/>'});
+    s+=rmark(g.R,g.u,g.v,18).replace('class="rm"','class="rm" style="stroke:#1d57b3"');
+    s+='<g data-r="rot"><circle class="rot" cx="'+f(g.A[0])+'" cy="'+f(g.A[1])+'" r="18" data-r="rot"/><text x="'+f(g.A[0])+'" y="'+f(g.A[1]+8)+'" text-anchor="middle" font-size="22" data-r="rot">↻</text></g>';
+    gt.innerHTML=s}
+  function snap(cx,cy,th){
+    for(const r of refs){let d=((th-r.a)%90+90)%90;if(d>45)d-=90;if(Math.abs(d)<4){th-=d;break}}
+    S.cx=cx;S.cy=cy;S.th=th;
+    let locked=[false,false];
+    for(const r of refs){const E=edges();for(let i=0;i<2;i++){if(angDiff180(E[i].a,r.a)<.6){const sd=sgnDist(r.p,E[i].o,E[i].a);if(Math.abs(sd)<8){const n=[-dirv(E[i].a)[1],dirv(E[i].a)[0]];S.cx+=n[0]*sd;S.cy+=n[1]*sd;locked[i]=true}}}}
+    let best=null;const E=edges();
+    for(const p of pts)for(let i=0;i<2;i++){if(locked[i])continue;const sd=sgnDist(p.xy,E[i].o,E[i].a);if(Math.abs(sd)<10&&(!best||Math.abs(sd)<Math.abs(best.sd)))best={sd,i}}
+    if(best){const a=E[best.i].a,n=[-dirv(a)[1],dirv(a)[0]];S.cx+=n[0]*best.sd;S.cy+=n[1]*best.sd}
+    S.cx=Math.max(-40,Math.min(W+40,S.cx));S.cy=Math.max(-40,Math.min(H+110,S.cy))}
+  function refresh(){const before=al.join();paintTri();if(al.join()!==before&&(al[0]||al[1])&&before.indexOf('true')<0)sfx('snap')}
+  function toSvg(e){const r=svg.getBoundingClientRect();return [(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H]}
+  let drag=null;
+  svg.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-r]');if(!t||revealed)return;const p=toSvg(e);
+    drag={r:t.dataset.r,e:t.dataset.e,s:p,c0:[S.cx,S.cy],th0:S.th,moved:false,a0:Math.atan2(p[1]-S.cy,p[0]-S.cx)};try{svg.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const p=toSvg(e);if(dist(p,drag.s)>5)drag.moved=true;
+    if(drag.r==='rot'){snap(S.cx,S.cy,drag.th0+deg(Math.atan2(p[1]-S.cy,p[0]-S.cx)-drag.a0));refresh()}
+    else if(drag.moved){snap(drag.c0[0]+p[0]-drag.s[0],drag.c0[1]+p[1]-drag.s[1],S.th);refresh()}});
+  const end=e=>{if(!drag)return;if(drag.r==='edge'&&!drag.moved){const E=edges()[+drag.e];if(!S.drawn.some(d=>angDiff180(d.a,E.a)<.5&&lineDist(E.o,d.o,d.a)<1.5)){S.drawn.push({o:E.o,a:E.a});sfx('pen');paintDrawn()}}drag=null};
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{drag=null});
+  const rot=d=>{snap(S.cx,S.cy,S.th+d);refresh()};
+  $('#gl',box).onclick=()=>rot(-5);$('#gR',box).onclick=()=>rot(5);
+  $('#gw',box).onclick=()=>{S.drawn=[];paintDrawn()};
+  const gk=$('#gk',box);if(gk)gk.onclick=()=>check(evalGoals().all);
+  paintRef();paintDrawn();paintTri();
+  return {reveal(){revealed=true;paintDrawn();if(gk)gk.disabled=true},state:S,T:T,eval:evalGoals,set(cx,cy,th){snap(cx,cy,th);refresh()}}}
+/* ---------- uitleg ---------- */
+function geodriehoekFig(){const R=[130,40],A=[330,40],B=[130,240],M=[230,140],hd=unit(A,B),w=unit(M,R);let d='';
+  for(let t=0;t<=180;t+=10){const c=Math.cos(rad(t)),sn=Math.sin(rad(t));d+=(t?'L':'M')+(M[0]+70*(c*hd[0]+sn*w[0])).toFixed(1)+' '+(M[1]+70*(c*hd[1]+sn*w[1])).toFixed(1)}
+  return svgWrap(420,280,'<polygon points="'+[R,A,B].join(' ')+'" fill="rgba(120,190,255,.38)" stroke="#2a6fdb" stroke-width="4" stroke-linejoin="round"/><path d="'+d+'" fill="none" stroke="#e5a400" stroke-width="4"/>'+
+   rmark(R,[1,0],[0,1],24)+lab('rechte hoek',[8,22],'start')+'<line x1="90" y1="28" x2="138" y2="50" stroke="#c0392b" stroke-width="2.5"/>'+
+   lab('korte kant',[230,28],'middle')+lab('korte kant',[8,150],'start')+lab('lange kant',[250,205],'start'),'gdh')}
+const EX=[
+ {t:'Welkom',speak:n=>'Hoi '+n+'! In deze les leer je over hoeken, loodrechte lijnen en evenwijdige lijnen. Je leert ook diagonalen. En je leert tekenen met een geodriehoek. Eerst komt de uitleg. Je mag overal zelf mee spelen. Daarna krijg je zestig vragen. Een fout maken mag. Je mag het dan opnieuw proberen.',
+  html:n=>'<div style="width:100px;margin:0 auto">'+mascot()+'</div><p>Hoi <b>'+esc(n||'')+'</b>! In deze les leer je:</p><ul><li>wat een <b>hoek</b> is</li><li>wat <b>loodrecht</b> en <b>evenwijdig</b> is</li><li>wat een <b>diagonaal</b> is</li><li>tekenen met de <b>geodriehoek</b></li></ul><p>Eerst de uitleg. Je mag overal zelf mee spelen. Daarna krijg je <b>60 vragen</b>.</p><p class="note">Een fout maken mag. Je mag het dan opnieuw proberen.</p>'},
+ {t:'Een hoek',speak:()=>'Een hoek maak je met twee lijnen die in één punt beginnen. Dat punt heet het hoekpunt. De twee lijnen heten de benen. Het teken voor hoek is een hoekje. Een hoek meet je in graden. Een scherpe hoek is kleiner dan negentig graden. Een rechte hoek is precies negentig graden. Een stompe hoek is groter dan negentig graden. Draai aan de schuifbalk en kijk wat er gebeurt.',
+  html:()=>'<p>Een <span class="kw">hoek</span> maak je met <b>twee lijnen</b> die in <b>één punt</b> beginnen.</p><p>Dat punt is het <b>hoekpunt</b>. De lijnen zijn de <b>benen</b>. Het teken voor hoek is <b>∠</b>.</p><div class="say"><b>Scherp</b>: kleiner dan 90° &nbsp; <b>Recht</b>: precies 90° &nbsp; <b>Stomp</b>: groter dan 90°</div><p><b>Probeer zelf:</b> draai aan de schuifbalk.</p><div id="mw"></div>',
+  mount(b){angleW($('#mw',b),{mode:'hoek',start:35,show:'name',live:true,goal:a=>a===90,btn:'Dit snap ik'},()=>{})}},
+ {t:'Loodrecht',speak:()=>'Twee lijnen staan loodrecht op elkaar als ze samen een rechte hoek maken. Dat is negentig graden. Het teken voor loodrecht is een omgekeerde T. Draai de oranje lijn tot hij loodrecht staat. Je ziet dan een groen vinkje.',
+  html:()=>'<p>Twee lijnen staan <span class="kw">loodrecht</span> op elkaar als ze samen een <b>rechte hoek</b> maken (90°).</p><p>Het teken is <b>⊥</b>.</p><p><b>Probeer zelf:</b> draai de oranje lijn tot hij loodrecht staat.</p><div id="mw"></div>',
+  mount(b){angleW($('#mw',b),{mode:'lines',start:60,show:'deg',live:true,goal:a=>a===90,btn:'Dit snap ik'},()=>{})}},
+ {t:'Evenwijdig',speak:()=>'Evenwijdige lijnen blijven overal even ver van elkaar. Ze raken elkaar nooit. Het teken voor evenwijdig zijn twee schuine streepjes. Draai de oranje lijn tot hij evenwijdig is aan de blauwe lijn.',
+  html:()=>'<p><span class="kw">Evenwijdige</span> lijnen blijven overal <b>even ver</b> van elkaar. Ze raken elkaar <b>nooit</b>.</p><p>Het teken is <b>∥</b>.</p><p><b>Probeer zelf:</b> draai de oranje lijn tot hij evenwijdig is aan de blauwe.</p><div id="mw"></div>',
+  mount(b){angleW($('#mw',b),{mode:'par',start:28,live:true,goal:a=>a<=2||a>=178,btn:'Dit snap ik'},()=>{})}},
+ {t:'Vierhoeken',speak:()=>'Een vierhoek heeft vier zijden en vier hoekpunten. Een rechthoek heeft vier rechte hoeken. De zijden die tegenover elkaar liggen zijn even lang en evenwijdig. Een vierkant is een rechthoek met vier even lange zijden.',
+  html:()=>{const R=[[50,160],[210,160],[210,50],[50,50]],Q=[[250,160],[360,160],[360,50],[250,50]];
+    return '<p>Een <span class="kw">vierhoek</span> heeft 4 zijden en 4 hoekpunten.</p>'+svgWrap(420,210,poly(null,R,{fill:'#eaf4ff'})+poly(null,Q,{fill:'#fff3dc'})+rmark(R[0],[1,0],[0,-1])+rmark(R[1],[-1,0],[0,-1])+rmark(R[2],[-1,0],[0,1])+rmark(R[3],[1,0],[0,1])+rmark(Q[0],[1,0],[0,-1])+rmark(Q[1],[-1,0],[0,-1])+rmark(Q[2],[-1,0],[0,1])+rmark(Q[3],[1,0],[0,1])+tickMark(Q[0],Q[1],1)+tickMark(Q[1],Q[2],1)+tickMark(Q[2],Q[3],1)+tickMark(Q[3],Q[0],1)+lab('rechthoek',[130,196])+lab('vierkant',[305,196]),'')+
+    '<p>Een <b>rechthoek</b> heeft 4 rechte hoeken. Overliggende zijden zijn <b>evenwijdig</b>.</p><p>Een <b>vierkant</b> is een rechthoek met 4 even lange zijden.</p>'}},
+ {t:'Diagonalen',speak:()=>'Een diagonaal is een lijnstuk tussen twee hoekpunten die niet naast elkaar liggen. Een vierhoek heeft twee diagonalen. Druk op de knop om de diagonalen te zien.',
+  html:()=>'<p>Een <span class="kw">diagonaal</span> is een lijnstuk tussen twee hoekpunten die <b>niet naast elkaar</b> liggen.</p><p>Een vierhoek heeft <b>2 diagonalen</b>.</p><div id="mw"></div><div class="row"><button class="btn" id="dg" type="button">Laat de diagonalen zien</button></div><p class="note" id="dn"></p>',
+  mount(b){let on=false;const draw=()=>{$('#mw',b).innerHTML=rectFig({diag:on});$('#dg',b).textContent=on?'Verberg de diagonalen':'Laat de diagonalen zien';$('#dn',b).textContent=on?'De diagonalen zijn AC en BD. In een rechthoek zijn ze even lang.':''};$('#dg',b).onclick=()=>{on=!on;sfx('tap');draw()};draw()}},
+ {t:'De geodriehoek',speak:()=>'Dit is een geodriehoek. Hij heeft een rechte hoek. De twee zijden bij de rechte hoek heten de korte kanten. De lange kant ligt tegenover de rechte hoek. Met de korte kanten kun je loodrechte en evenwijdige lijnen tekenen.',
+  html:()=>'<p>Dit is een <span class="kw">geodriehoek</span>. Hij heeft een <b>rechte hoek</b>.</p>'+geodriehoekFig()+'<p>De twee <b>korte kanten</b> staan loodrecht op elkaar. Daarmee teken je loodrechte en evenwijdige lijnen.</p>'},
+ {t:'Loodrecht tekenen',speak:()=>'Zo teken je een loodrechte lijn door een punt. Een: leg een korte kant langs lijn m. Twee: schuif de geodriehoek tot de andere korte kant door punt P gaat. Drie: tik op die korte kant om de lijn te tekenen. Je kunt de geodriehoek slepen. Met het gele rondje draai je hem. Het groene stukje betekent dat hij goed ligt.',
+  html:()=>'<ol><li>Leg een <b>korte kant</b> langs lijn <b>m</b>.</li><li>Schuif tot de <b>andere korte kant</b> door punt <b>P</b> gaat.</li><li><b>Tik</b> op die korte kant. Er komt een lijn.</li></ol><p class="note">Sleep de geodriehoek. Draai met het gele rondje.</p><div id="mw"></div>',
+  mount(b){geoW($('#mw',b),{lines:[{p:[300,120],a:0,label:'m'}],pts:[{xy:[400,290],label:'P'}],goals:[{kind:'perp',ref:0,via:[400,290]}],start:[120,260]},()=>{},{live:true,noCheck:true})}},
+ {t:'Evenwijdig tekenen',speak:()=>'Zo teken je een evenwijdige lijn door een punt. Een: leg een korte kant langs lijn m. Twee: schuif de geodriehoek omhoog tot dezelfde kant door punt P gaat. Drie: tik op de kant om de lijn te tekenen.',
+  html:()=>'<ol><li>Leg een <b>korte kant</b> langs lijn <b>m</b>.</li><li>Schuif de geodriehoek tot <b>dezelfde kant</b> door punt <b>P</b> gaat.</li><li><b>Tik</b> op die kant. Er komt een lijn.</li></ol><div id="mw"></div>',
+  mount(b){geoW($('#mw',b),{lines:[{p:[300,110],a:15,label:'m'}],pts:[{xy:[380,290],label:'P'}],goals:[{kind:'par',ref:0,via:[380,290]}],start:[120,260]},()=>{},{live:true,noCheck:true})}},
+ {t:'Klaar voor de vragen',speak:()=>'Je hebt de uitleg gehoord en zelf geprobeerd. Nu komen de zestig vragen. Ze zijn verdeeld in zes delen. Neem rustig de tijd. Je kunt dit!',
+  html:()=>'<div style="width:100px;margin:0 auto">'+mascot()+'</div><p>Nu komen de <b>60 vragen</b>, in <b>6 delen</b> van 10.</p><p>Neem rustig de tijd. Een fout maken mag.</p><p><b>Je kunt dit!</b></p>'}
+];
+/* ---------- de 60 vragen ---------- */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const LV=[
+ {t:'Hoeken en vormen',s:'Hoek, hoekpunt, benen, vierkant, rechthoek',tip:'Lees de vraag nog eens rustig. Een hoek heeft een hoekpunt en twee benen.'},
+ {t:'Loodrecht',s:'Rechte hoek en het teken ⊥',tip:'Loodrecht betekent: samen een rechte hoek van 90°. Het teken is ⊥.'},
+ {t:'Evenwijdig',s:'Overal even ver, raken elkaar nooit',tip:'Evenwijdig betekent: overal even ver van elkaar en ze raken elkaar nooit. Het teken is ∥.'},
+ {t:'Diagonalen en vierhoeken',s:'Diagonalen tekenen en bekijken',tip:'Een diagonaal gaat van een hoekpunt naar het hoekpunt aan de overkant.'},
+ {t:'Soorten hoeken',s:'Scherp, recht, stomp en graden',tip:'Scherp is kleiner dan 90°. Recht is 90°. Stomp is groter dan 90°.'},
+ {t:'Tekenen met de geodriehoek',s:'Loodrechte en evenwijdige lijnen tekenen',tip:'Leg een korte kant langs de lijn. Schuif tot de kant door het punt gaat. Teken langs de kant.'}];
+const MC=(lv,p,c,w,o)=>({lv,prompt:'<p class="q">'+p+'</p>',ans:c,build:(a,k)=>mcW(a,shuffle([c,...w]),c,k,o)});
+const FMC=(lv,fig,p,c,w,o)=>({lv,prompt:'<p class="q">'+p+'</p>',fig,ans:c,build:(a,k)=>{a.innerHTML=fig+'<div id="fm"></div>';return mcW($('#fm',a),shuffle([c,...w]),c,k,o)}});
+const NUM=(lv,p,n,u)=>({lv,prompt:'<p class="q">'+p+'</p>',ans:String(n),build:(a,k)=>numW(a,n,k,u)});
+const PK=(lv,p,svg,ans,okf)=>({lv,prompt:'<p class="q">'+p+'</p>',ans:ans.join(' en '),build:(a,k)=>pickW(a,svg,okf||(s=>sameSet(s,ans)),k,ans)});
+const ANG=(lv,p,o,ans)=>({lv,prompt:'<p class="q">'+p+'</p>',ans,build:(a,k)=>angleW(a,o,k)});
+const GEO=(lv,p,T,ans)=>({lv,prompt:'<p class="q">'+p+'</p>',ans:ans||'zie de groene stippellijn',build:(a,k)=>geoW(a,T,k)});
+const JN=['Ja','Nee'];
+function hoekPickFig(legs){const V=[70,170],E1=[250,170],E2=angPt(V,50,190);
+  return svgWrap(300,200,wedge(V,0,50,44)+(legs?segm('PQ',V,E1)+segm('PR',V,E2)+dot(null,V,7)+dot(null,E1,6)+dot(null,E2,6):segm(null,V,E1)+segm(null,V,E2)+dot('P',V,7)+dot('Q',E1,7)+dot('R',E2,7))+lab('P',[V[0]-4,V[1]+30])+lab('Q',[E1[0]+4,E1[1]+30])+lab('R',[E2[0]+18,E2[1]-6]),'ang')}
+function vormenFig(){const sh=[['drie',[[40,150],[110,150],[75,80]]],['vier',[[150,150],[230,150],[215,80],[165,90]]],['vijf',[[270,150],[340,150],[360,100],[305,65],[255,100]]],['vierk',[[375,150],[425,150],[425,100],[375,100]]]];
+  return svgWrap(460,190,sh.map(([id,p])=>poly(id,p,{fill:'#eaf4ff'})).join(''),'vormen')}
+function multiAng(list){let s='';list.forEach((a,i)=>{const V=[30+i*150,140];s+=wedge(V,0,a,34)+segm(null,V,angPt(V,0,110))+segm(null,V,angPt(V,a,110))+dot(null,V,5)+lab('Hoek '+'ABC'[i],[V[0]+55,V[1]+30])});return svgWrap(480,170,s,'multi')}
+const QS=[
+ /* 1 */ MC(1,'Wat is een hoek?','Twee lijnen die in één punt beginnen',['Een lijn die rechtdoor gaat','Een ronde vorm','Twee lijnen die elkaar nooit raken']),
+ PK(1,'Tik op het <b>hoekpunt</b> van de hoek.',hoekPickFig(false),['P']),
+ PK(1,'Tik op beide <b>benen</b> van de hoek.',hoekPickFig(true),['PQ','PR']),
+ MC(1,'Welk teken hoort bij het woord <b>hoek</b>?','∠',['⊥','∥','△'],{two:true}),
+ NUM(1,'Hoeveel hoekpunten heeft een vierhoek?',4),
+ MC(1,'Wat is een <b>vierkant</b>?','Een vierhoek met 4 rechte hoeken en 4 even lange zijden',['Een vierhoek met maar 2 rechte hoeken','Een driehoek met 3 even lange zijden','Een vierhoek waarvan alle zijden schuin staan']),
+ MC(1,'Wat is een <b>rechthoek</b>?','Een vierhoek met 4 rechte hoeken',['Een vierhoek zonder rechte hoeken','Een driehoek met een rechte hoek','Een vierhoek met 3 rechte hoeken']),
+ PK(1,'Tik op alle <b>vierhoeken</b>.',vormenFig(),['vier','vierk']),
+ NUM(1,'Hoeveel rechte hoeken heeft een rechthoek?',4),
+ MC(1,'Hoe heet het punt waar de benen van een hoek samenkomen?','Het hoekpunt',['De diagonaal','Het been','De zijde']),
+ /* 11 */ MC(2,'Wat betekent <b>loodrecht</b>?','Samen een rechte hoek (90°)',['Overal even ver van elkaar','Een hoek kleiner dan 90°','Twee lijnen op elkaar']),
+ MC(2,'Welk teken hoort bij <b>loodrecht</b>?','⊥',['∥','∠','='],{two:true}),
+ ANG(2,'Draai de oranje lijn zodat hij <b>loodrecht</b> staat op de blauwe lijn.',{mode:'lines',start:55,goal:a=>Math.abs(a-90)<=2,reveal:90},'90 graden'),
+ PK(2,'Zijde BC staat loodrecht op zijde AB. Tik op <b>alle zijden</b> die loodrecht op <b>BC</b> staan.',trapFig({pick:true}),['AB','CD']),
+ PK(2,'Tik op alle lijnstukken die <b>loodrecht</b> op lijnstuk <b>AC</b> staan.',fenceFig(),['AF','BE','CD']),
+ MC(2,'Hoe heet de hoek tussen twee loodrechte lijnen?','Een rechte hoek',['Een scherpe hoek','Een stompe hoek','Een diagonaal']),
+ FMC(2,twoLines(20,110),'Staan de lijnen <b>p</b> en <b>q</b> loodrecht op elkaar?','Ja',['Nee'],{two:true}),
+ FMC(2,twoLines(20,98),'Staan de lijnen <b>p</b> en <b>q</b> loodrecht op elkaar?','Nee',['Ja'],{two:true}),
+ NUM(2,'Hoeveel graden is een <b>rechte hoek</b>?',90,'Schrijf alleen het getal.'),
+ GEO(2,'Teken door punt <b>P</b> een lijn die <b>loodrecht</b> staat op lijn <b>m</b>. Gebruik de geodriehoek.',{lines:[{p:[300,110],a:0,label:'m'}],pts:[{xy:[400,280],label:'P'}],goals:[{kind:'perp',ref:0,via:[400,280]}]}),
+ /* 21 */ MC(3,'Wat betekent <b>evenwijdig</b>?','Overal even ver van elkaar, ze raken elkaar nooit',['Samen een rechte hoek','Lijnen die elkaar snijden','Lijnen die even lang zijn']),
+ MC(3,'Welk teken hoort bij <b>evenwijdig</b>?','∥',['⊥','∠','△'],{two:true}),
+ ANG(3,'Draai de oranje lijn zodat hij <b>evenwijdig</b> is aan de blauwe lijn.',{mode:'par',start:25,goal:a=>a<=2||a>=178,reveal:0},'evenwijdig'),
+ PK(3,'Welke zijde is <b>evenwijdig</b> aan zijde <b>AB</b>? Tik erop.',trapFig({pick:true}),['CD']),
+ PK(3,'Tik op alle lijnstukken die <b>evenwijdig</b> zijn aan lijnstuk <b>BE</b>.',fenceFig(),['AF','CD']),
+ PK(3,'Welke diagonaal is <b>evenwijdig</b> aan diagonaal <b>AE</b>? Tik erop.',fenceFig(),['BD']),
+ FMC(3,parLines(16),'Zijn de lijnen <b>p</b> en <b>q</b> evenwijdig?','Nee',['Ja'],{two:true}),
+ PK(3,'Tik op de zijde die <b>evenwijdig</b> is aan zijde <b>AB</b>.',rectFig({pick:true}),['CD']),
+ FMC(3,parLines(0),'Zijn de lijnen <b>p</b> en <b>q</b> evenwijdig?','Ja',['Nee'],{two:true}),
+ GEO(3,'Teken door punt <b>P</b> een lijn die <b>evenwijdig</b> is aan lijn <b>m</b>. Gebruik de geodriehoek.',{lines:[{p:[300,110],a:0,label:'m'}],pts:[{xy:[360,270],label:'P'}],goals:[{kind:'par',ref:0,via:[360,270]}]}),
+ /* 31 */ MC(4,'Wat is een <b>diagonaal</b>?','Een lijnstuk tussen twee hoekpunten die niet naast elkaar liggen',['Een zijde van de vierhoek','Een lijn om de vierhoek heen','Een lijnstuk tussen twee hoekpunten die naast elkaar liggen']),
+ PK(4,'Tik op beide <b>diagonalen</b> van rechthoek ABCD.',rectFig({pick:true,diag:true}),['AC','BD']),
+ NUM(4,'Hoeveel diagonalen heeft een vierhoek?',2),
+ {lv:4,prompt:'<p class="q">Teken de <b>diagonalen</b> van vierhoek PQRS. Tik op twee hoekpunten om een lijn te tekenen.</p>',ans:'PR en QS',build:(a,k)=>connectW(a,{w:320,h:220,pts:{P:[60,170],Q:[260,170],R:[260,60],S:[60,60]},off:{P:[-16,26],Q:[16,26],R:[18,-8],S:[-16,-8]},sides:[['P','Q'],['Q','R'],['R','S'],['S','P']],need:['PR','QS']},k)},
+ {lv:4,prompt:'<p class="q">Teken de <b>diagonalen</b> van vierhoek ABCD.</p>',ans:'AC en BD',build:(a,k)=>connectW(a,{w:320,h:220,pts:{A:[50,170],B:[260,170],C:[260,50],D:[120,50]},off:{A:[-16,26],B:[16,26],C:[18,-8],D:[-12,-12]},sides:[['A','B'],['B','C'],['C','D'],['D','A']],need:['AC','BD']},k)},
+ MC(4,'Zijn de diagonalen van een <b>vierkant</b> even lang?','Ja',['Nee'],{two:true}),
+ MC(4,'Staan de diagonalen van een <b>vierkant</b> loodrecht op elkaar?','Ja',['Nee'],{two:true}),
+ FMC(4,rectFig({diag:true}),'Staan de diagonalen van deze rechthoek loodrecht op elkaar? (Het is geen vierkant.)','Nee',['Ja'],{two:true}),
+ PK(4,'Maak lijnstuk <b>BE</b> rood. Tik erop.',fenceFig(),['BE']),
+ {lv:4,prompt:'<p class="q">Teken op het rooster een vierkant <b>PQRS</b> met zijden van <b>4</b>. Tik op Q, R en S.</p>',ans:'zie het groene vierkant',build:(a,k)=>gridW(a,{cols:8,rows:7,P:[2,5],n:4},k)},
+ /* 41 */ MC(5,'Een hoek kleiner dan 90° is een...','Scherpe hoek',['Rechte hoek','Stompe hoek','Gestrekte hoek']),
+ FMC(5,angFig(40),'Wat voor hoek is dit?','Scherpe hoek',['Rechte hoek','Stompe hoek']),
+ FMC(5,angFig(90),'Wat voor hoek is dit?','Rechte hoek',['Scherpe hoek','Stompe hoek']),
+ FMC(5,angFig(130),'Wat voor hoek is dit?','Stompe hoek',['Scherpe hoek','Rechte hoek']),
+ MC(5,'Een hoek groter dan 90° en kleiner dan 180° is een...','Stompe hoek',['Scherpe hoek','Rechte hoek','Gestrekte hoek']),
+ ANG(5,'Maak een <b>scherpe</b> hoek.',{mode:'hoek',start:120,show:'deg',goal:a=>a>0&&a<90,reveal:50},'bijvoorbeeld 50°'),
+ ANG(5,'Maak een <b>stompe</b> hoek.',{mode:'hoek',start:40,show:'deg',goal:a=>a>90&&a<180,reveal:130},'bijvoorbeeld 130°'),
+ ANG(5,'Maak een hoek van <b>45°</b>.',{mode:'hoek',start:100,show:'deg',goal:a=>Math.abs(a-45)<=3,reveal:45},'45°'),
+ FMC(5,multiAng([35,80,120]),'Welke hoek is het <b>grootst</b>?','Hoek C',['Hoek A','Hoek B']),
+ NUM(5,'Hoeveel graden is een <b>gestrekte hoek</b> (een rechte lijn)?',180,'Schrijf alleen het getal.'),
+ /* 51 */ GEO(6,'Teken door punt <b>P</b> een lijn <b>loodrecht</b> op lijn <b>m</b>.',{lines:[{p:[300,150],a:-20,label:'m'}],pts:[{xy:[400,300],label:'P'}],goals:[{kind:'perp',ref:0,via:[400,300]}]}),
+ GEO(6,'Teken een lijn <b>loodrecht</b> op lijn <b>m</b> door punt <b>P</b>. Punt P ligt op de lijn.',{lines:[{p:[300,130],a:0,label:'m'}],pts:[{xy:[380,130],label:'P'}],goals:[{kind:'perp',ref:0,via:[380,130]}]}),
+ GEO(6,'Teken door punt <b>P</b> een lijn <b>evenwijdig</b> aan lijn <b>m</b>.',{lines:[{p:[300,100],a:0,label:'m'}],pts:[{xy:[330,270],label:'P'}],goals:[{kind:'par',ref:0,via:[330,270]}]}),
+ GEO(6,'Teken door punt <b>P</b> een lijn <b>evenwijdig</b> aan lijn <b>m</b>. De lijn staat schuin.',{lines:[{p:[300,120],a:25,label:'m'}],pts:[{xy:[330,300],label:'P'}],goals:[{kind:'par',ref:0,via:[330,300]}]}),
+ GEO(6,'Teken door <b>elke stip</b> van lijn <b>n</b> een lijn die <b>loodrecht</b> op n staat.',{lines:[{p:[300,110],a:-12,label:'n'}],pts:[{xy:[150,141.9]},{xy:[300,110]},{xy:[450,78.1]}],goals:[{kind:'perp',ref:0,via:[150,141.9]},{kind:'perp',ref:0,via:[300,110]},{kind:'perp',ref:0,via:[450,78.1]}]}),
+ GEO(6,'Teken door punt <b>P</b> lijn <b>r</b> loodrecht op lijn <b>p</b>.',{lines:[{p:[300,120],a:0,label:'p'}],pts:[{xy:[220,290],label:'P'}],goals:[{kind:'perp',ref:0,via:[220,290]}]}),
+ GEO(6,'Teken door punt <b>Q</b> een lijn <b>s</b> die <b>evenwijdig</b> is aan lijn <b>r</b>.',{lines:[{p:[200,0],a:90,label:'r'}],pts:[{xy:[430,240],label:'Q'}],goals:[{kind:'par',ref:0,via:[430,240]}]}),
+ GEO(6,'Teken door <b>P</b> een lijn <b>loodrecht</b> op m en door <b>Q</b> een lijn <b>evenwijdig</b> aan m.',{lines:[{p:[300,150],a:10,label:'m'}],pts:[{xy:[160,300],label:'P'},{xy:[460,300],label:'Q'}],goals:[{kind:'perp',ref:0,via:[160,300]},{kind:'par',ref:0,via:[460,300]}]}),
+ GEO(6,'Teken door <b>P</b> en door <b>Q</b> een lijn <b>evenwijdig</b> aan lijn <b>m</b>.',{lines:[{p:[300,110],a:-8,label:'m'}],pts:[{xy:[160,260],label:'P'},{xy:[440,330],label:'Q'}],goals:[{kind:'par',ref:0,via:[160,260]},{kind:'par',ref:0,via:[440,330]}]}),
+ MC(6,'Je wilt een <b>evenwijdige</b> lijn tekenen door een punt. Wat doe je met je geodriehoek?','Een korte kant langs de lijn leggen en de geodriehoek naar het punt schuiven',['De lange kant loodrecht op de lijn leggen','De geodriehoek een kwartslag draaien en dan tekenen','Zonder geodriehoek schatten'])
+];
+QS.forEach((q,i)=>{q.id=i+1;q.tip=LV[q.lv-1].tip});
+console.assert(QS.length===60,'aantal vragen '+QS.length);
+/* ---------- scherm en spelverloop ---------- */
+const MAXT=3,stage=()=>$('#stage');
+const speakText=h=>{const d=document.createElement('div');d.innerHTML=h;let t=d.textContent.replace(/∠/g,'hoek').replace(/⊥/g,'loodrecht').replace(/∥/g,'evenwijdig').replace(/°/g,' graden').replace(/\s+/g,' ').trim();return t};
+const total=()=>Object.values(DB.res).reduce((s,r)=>s+(r.pts||0),0);
+const lvStat=l=>{let n=0,p=0;for(let i=1;i<=10;i++){const r=DB.res[(l-1)*10+i];if(r){n++;p+=r.pts||0}}return {n,p}};
+function topbar(){const on=!!DB.name;$('#bar').hidden=!on;if(!on)return;$('#av').innerHTML=mascot();$('#av svg').style.cssText='width:44px;height:44px';$('#nm').textContent=DB.name;
+  $('#tv').textContent='Lees voor: '+(DB.voice?'aan':'uit');$('#ts').textContent='Geluid: '+(DB.sound?'aan':'uit');$('#pt').textContent=total()+' punten'}
+function prog(f){const p=$('#pg');p.hidden=f==null;if(f!=null)$('i',p).style.width=Math.round(f*100)+'%'}
+$('#tv').onclick=()=>{DB.voice=!DB.voice;if(!DB.voice)stopSpeech();save();topbar()};
+$('#ts').onclick=()=>{DB.sound=!DB.sound;save();topbar();sfx('tap')};
+function go(html){stopSpeech();stage().innerHTML=html;window.scrollTo(0,0)}
+function showLogin(){prog(null);topbar();
+  go('<section class="card"><div style="width:90px;margin:0 auto">'+mascot()+'</div><h1 style="text-align:center">Lijnen en hoeken</h1><p style="text-align:center">Schrijf hier je naam.</p><input class="nm" id="nin" type="text" maxlength="40" autocomplete="off" aria-label="Je naam"><div class="row" style="justify-content:center"><button class="btn" id="nok" type="button">Start</button></div></section>');
+  const i=$('#nin'),ok=()=>{const v=i.value.trim();if(!v){i.focus();return}DB.name=v;save();sfx('tap');showHome()};
+  $('#nok').onclick=ok;i.onkeydown=e=>{if(e.key==='Enter')ok()}}
+function showHome(){topbar();prog(null);
+  let h='<section class="card"><h1>Hoi '+esc(DB.name)+'!</h1><p>Wiskunde: <b>lijnen en hoeken</b>. Je leert over hoeken, loodrecht, evenwijdig, diagonalen en tekenen met de geodriehoek.</p><div class="row"><button class="btn" id="hx" type="button">'+(DB.explain?'Uitleg opnieuw':'Start met de uitleg')+'</button></div></section>';
+  h+='<section class="card"><h2>De 60 vragen</h2><p class="note">Zes delen van 10 vragen. Je hebt nu '+total()+' van 60 punten.</p><div class="lv">';
+  LV.forEach((l,i)=>{const s=lvStat(i+1);h+='<button class="lvb'+(s.n===10?' done':'')+'" type="button" data-l="'+(i+1)+'"><span class="lvn">'+(s.n===10?'✓':i+1)+'</span><span><b>'+l.t+'</b><small>'+l.s+' · '+s.n+'/10 gedaan, '+s.p+' punten</small></span></button>'});
+  h+='</div></section><section class="card"><div class="row"><button class="btn alt small" id="hr" type="button">Mijn resultaten</button></div></section>';
+  go(h);$('#hx').onclick=()=>showExplain(0);$$('.lvb').forEach(b=>b.onclick=()=>{const l=+b.dataset.l,s=lvStat(l);startLevel(l,s.n>=10?0:s.n)});$('#hr').onclick=showResults}
+function showExplain(i){const e=EX[i],N=EX.length;prog((i+1)/N);const sp=e.speak(DB.name);
+  go('<section class="card explain"><div class="qhead"><span>Uitleg '+(i+1)+' van '+N+'</span></div><h2>'+e.t+'</h2>'+e.html(DB.name)+'<div class="row sp"><span id="lb"></span><div class="row" style="margin:0">'+(i?'<button class="btn alt" id="bk" type="button">Terug</button>':'')+'<button class="btn" id="nx" type="button">'+(i===N-1?'Start de vragen':'Verder')+'</button></div></div></section>');
+  $('#lb').appendChild(listenBtn(sp));if(e.mount)e.mount($('.explain'));
+  $('#nx').onclick=()=>{sfx('tap');if(i===N-1){DB.explain=true;save();startLevel(1,lvStat(1).n>=10?0:lvStat(1).n)}else showExplain(i+1)};
+  const bk=$('#bk');if(bk)bk.onclick=()=>showExplain(i-1);if(DB.voice)setTimeout(()=>speak(sp),300)}
+let CUR=null;
+function startLevel(l,idx){CUR={l,idx:Math.min(idx,9)};showQ()}
+function showQ(){const {l,idx}=CUR,q=QS[(l-1)*10+idx];CUR.q=q;CUR.tries=0;CUR.done=false;prog(idx/10);topbar();
+  const sp=speakText(q.prompt)+(q.fig?' Kijk naar de figuur.':'');
+  go('<section class="card"><div class="qhead"><span>Vraag '+(idx+1)+' van 10</span><span>'+LV[l-1].t+'</span></div><div class="row sp" style="align-items:flex-start"><div style="flex:1;min-width:200px">'+q.prompt+'</div><span id="lb"></span></div><div id="qa"></div><div id="fb"></div><div class="row" id="nxr" hidden><button class="btn good" id="nx" type="button">'+(idx===9?'Klaar met dit deel':'Volgende vraag')+'</button></div></section>');
+  $('#lb').appendChild(listenBtn(sp));
+  CUR.w=q.build($('#qa'),check);if(DB.voice)setTimeout(()=>speak(sp),250);
+  $('#nx').onclick=()=>{sfx('tap');if(idx===9)showLevelResult();else{CUR.idx++;showQ()}}}
+function check(ok){if(CUR.done)return;const q=CUR.q,fb=$('#fb');
+  const rec=pts=>{DB.res[q.id]={pts,tries:CUR.tries+(ok?0:1),ok:ok?1:0};save();topbar()};
+  if(ok){CUR.done=true;const first=CUR.tries===0;rec(first?1:0);sfx('ok');fb.innerHTML='<div class="fb ok pop">'+(first?'Goed! Je krijgt 1 punt.':'Goed! Nu heb je het gevonden. Deze keer geen punt, want je had het niet de eerste keer goed.')+'</div>';$('#nxr').hidden=false;$('#nx').focus&&0;return}
+  CUR.tries++;sfx('no');
+  if(CUR.tries>=MAXT){CUR.done=true;DB.res[q.id]={pts:0,tries:CUR.tries,ok:0};save();topbar();if(CUR.w&&CUR.w.reveal)CUR.w.reveal();
+    fb.innerHTML='<div class="fb no">Dat was het niet. Het goede antwoord: <b>'+q.ans+'</b></div><div class="fb tip">'+q.tip+'</div>';$('#nxr').hidden=false;return}
+  fb.innerHTML='<div class="fb no">Nog niet goed. Probeer het nog een keer.</div>'+(CUR.tries>=2?'<div class="fb tip">'+q.tip+'</div>':'')}
+function showLevelResult(){const l=CUR.l,s=lvStat(l);prog(1);const st=s.p>=9?3:s.p>=7?2:s.p>=4?1:0;sfx('win');
+  go('<section class="card"><div style="width:90px;margin:0 auto">'+mascot()+'</div><h1 style="text-align:center">'+LV[l-1].t+' klaar!</h1><div class="stars" aria-label="'+st+' van 3 sterren">'+'★'.repeat(st)+'☆'.repeat(3-st)+'</div><p style="text-align:center" class="big">'+s.p+' van 10 punten</p><p style="text-align:center">'+(s.p>=9?'Fantastisch!':s.p>=7?'Heel goed gedaan!':s.p>=4?'Goed bezig! Oefenen helpt.':'Je hebt hard gewerkt. Probeer het nog een keer.')+'</p><div class="row" style="justify-content:center">'+(l<6?'<button class="btn" id="nl" type="button">Volgend deel</button>':'')+'<button class="btn alt" id="hm" type="button">Terug naar het begin</button></div></section>');
+  const nl=$('#nl');if(nl)nl.onclick=()=>startLevel(l+1,lvStat(l+1).n>=10?0:lvStat(l+1).n);$('#hm').onclick=showHome}
+function showResults(){prog(null);let h='<section class="card"><h2>Mijn resultaten</h2><p><b>'+esc(DB.name)+'</b>: '+total()+' van 60 punten.</p>';
+  LV.forEach((l,i)=>{const s=lvStat(i+1);h+='<p>'+(i+1)+'. '+l.t+': <b>'+s.p+'</b> punten ('+s.n+'/10 gedaan)</p>'});
+  h+='<div class="row"><button class="btn" id="csv" type="button">Download als bestand (CSV)</button><button class="btn alt" id="bk" type="button">Terug</button></div><p class="note">Alles wordt bewaard in deze browser. Wil je opnieuw beginnen?</p><div class="row"><button class="btn alt small" id="rs" type="button">Alles wissen en opnieuw beginnen</button></div></section>';
+  go(h);$('#bk').onclick=showHome;
+  $('#csv').onclick=()=>{const rows=[['naam','vraag','deel','punten','pogingen','goed']];QS.forEach(q=>{const r=DB.res[q.id];if(r)rows.push([DB.name,q.id,LV[q.lv-1].t,r.pts,r.tries,r.ok])});
+    const blob=new Blob(['﻿'+rows.map(r=>r.join(';')).join('\r\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lijnen-en-hoeken-'+DB.name.replace(/\W+/g,'_')+'.csv';a.click()};
+  $('#rs').onclick=()=>{if(confirm('Alle antwoorden wissen?')){DB.res={};DB.explain=false;save();showHome()}}}
+if(DB.name)showHome();else showLogin();
+</script></body></html>

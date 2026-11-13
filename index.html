@@ -1,140 +1,137 @@
-<!doctype html>
-<html lang="nl">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Oefenen rekenen</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-/* Layout: één smalle kolom met drie grote lesknoppen onder elkaar. */
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Lessenoverzicht</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}
+/* Twee kolommen (Wiskunde, Rekenen) met lescards; instellingenpaneel alleen voor de eigenaar. */
 :root{
-  --bg:#eef5ff; --surface:#ffffff; --ink:#10253f; --muted:#4a5f7a; --line:#c9d9ee;
-  --blue:#1c6df2; --blue-d:#1450b8; --on-blue:#ffffff; --blue-soft:#dcebff;
-  --teal:#0aa384; --teal-d:#067a63; --teal-soft:#d3f3ea;
-  --hot:#d9480f; --sun:#ffc531;
-  --fig:#b7c9f2; --figline:#1d4f9c; --c1:#ef9aa8; --c2:#7fcfbf; --c3:#ffd98a;
-  --font-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
-  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --bg:#eef3fb; --card:#ffffff; --ink:#14213d; --muted:#56637f; --line:#d3dcee;
+  --wis:#2f5fe0; --wis-bg:#e2eafd; --rek:#b8520a; --rek-bg:#ffe9d4;
+  --good:#178a5c; --bad:#c93a40; --focus:#ffb703; --on:#ffffff;
+  --disp:'Fredoka','Trebuchet MS',system-ui,sans-serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
-    --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
-    --teal:#2fd1ac; --teal-d:#2fd1ac; --teal-soft:#10403a; --hot:#ff9a6b; --sun:#ffd25c;
-    --fig:#3d5a94; --figline:#a9c4f5; --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
-    color-scheme:dark;
-  }
-}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1526; --card:#17223b; --ink:#eaf0ff; --muted:#9fb0d3; --line:#2b3a5e;
+  --wis:#7ea3ff; --wis-bg:#1b2a52; --rek:#ffa05a; --rek-bg:#3d2610;
+  --good:#58d8a0; --bad:#ff7b80; --on:#0b1430; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0c1626; --surface:#15233a; --ink:#e8f0fc; --muted:#a3b6d1; --line:#2a3d5c;
-  --blue:#6ea4ff; --blue-d:#3f73c9; --on-blue:#08142a; --blue-soft:#1b3157;
-  --teal:#2fd1ac; --teal-d:#2fd1ac; --teal-soft:#10403a; --hot:#ff9a6b; --sun:#ffd25c;
-  --fig:#3d5a94; --figline:#a9c4f5; --c1:#c0566b; --c2:#2f9582; --c3:#c99a2e;
-  color-scheme:dark;
-}
+  --bg:#0e1526; --card:#17223b; --ink:#eaf0ff; --muted:#9fb0d3; --line:#2b3a5e;
+  --wis:#7ea3ff; --wis-bg:#1b2a52; --rek:#ffa05a; --rek-bg:#3d2610;
+  --good:#58d8a0; --bad:#ff7b80; --on:#0b1430; color-scheme:dark}
 *{box-sizing:border-box}
-body{
-  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.5;
-  padding-block:24px 56px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));
-  padding-right:max(16px,env(safe-area-inset-right,0px));
-}
-.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-h1,h2{font-family:var(--font-display);line-height:1.1;margin:0;text-wrap:balance}
-h1{font-size:clamp(2.4rem,9vw,3.6rem)}
-h2{font-size:1.6rem}
-p{margin:0}
-.brand{font:700 1rem var(--font-display);letter-spacing:.06em;text-transform:uppercase;color:var(--teal-d)}
-.hello{font:700 1.35rem var(--font-display);color:var(--muted)}
-.field{display:flex;flex-direction:column;gap:4px;max-width:340px}
-.field label{font-weight:700}
-input{font:inherit;background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
-input:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-.list{display:flex;flex-direction:column;gap:14px}
-.lesson{position:relative;display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:center;text-decoration:none;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 4px 0 var(--line);transition:transform .15s}
-.lesson:hover{border-color:var(--blue);transform:translateY(-2px)}
-.lesson:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
-.art{display:flex;align-items:center;justify-content:center;background:var(--blue-soft);border-radius:12px;aspect-ratio:1;padding:8px}
-.art svg{width:100%;height:auto;display:block}
-.body{display:flex;flex-direction:column;gap:6px;min-width:0}
-.tags{display:flex;flex-wrap:wrap;gap:6px 8px;font-size:.85rem;font-weight:700;color:var(--muted)}
-.tags span{background:var(--bg);border-radius:99px;padding:1px 10px}
-.start{align-self:flex-start;margin-top:4px;background:var(--blue);color:var(--on-blue);border-radius:10px;padding:6px 18px;font:700 1.1rem var(--font-display);box-shadow:0 3px 0 var(--blue-d)}
-.seen{position:absolute;top:10px;right:12px;font-size:.85rem;font-weight:800;color:var(--teal-d);display:none}
-.lesson.opened .seen{display:block}
-.note{color:var(--muted);font-size:.95rem}
-@media (max-width:480px){.lesson{grid-template-columns:84px minmax(0,1fr);gap:12px;padding:12px}h2{font-size:1.35rem}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:980px;margin:0 auto}
+h1,h2,h3{font-family:var(--disp);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px)}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:28px 0 20px}
+header p{margin:4px 0 0;color:var(--muted)}
+button{font:600 16px var(--disp);cursor:pointer;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 16px;min-height:44px}
+button:hover{border-color:var(--ink)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button[disabled]{opacity:.45;cursor:default}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+@media(max-width:700px){.cols{grid-template-columns:minmax(0,1fr)}}
+.col{border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.col.wiskunde{background:var(--wis-bg);--c:var(--wis)} .col.rekenen{background:var(--rek-bg);--c:var(--rek)}
+.col h2{font-size:28px;color:var(--c);display:flex;justify-content:space-between;align-items:baseline}
+.col h2 small{font:600 15px var(--body);color:var(--muted)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lesson{display:flex;flex-direction:column;gap:2px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;text-decoration:none;color:var(--ink);min-width:0}
+.lesson:hover{border-color:var(--c)}
+.lesson b{font:600 19px var(--disp);overflow-wrap:anywhere}
+.lesson span{color:var(--muted);font-size:14px}
+.lesson em{font:600 15px var(--disp);font-style:normal;color:var(--c);margin-top:4px}
+.empty{color:var(--muted);padding:14px 4px}
+#settings{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px}
+#settings h2{font-size:22px}
+#settings p{margin:0;color:var(--muted)}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+@media(max-width:560px){.srow{grid-template-columns:minmax(0,1fr)}}
+.srow b{font:600 17px var(--disp);overflow-wrap:anywhere}
+.seg{display:flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:40px}
+.seg button[aria-pressed="true"].w{background:var(--wis);color:var(--on)}
+.seg button[aria-pressed="true"].r{background:var(--rek);color:var(--on)}
+.mv{display:flex;gap:6px}.mv button{padding:6px 12px;min-height:40px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bar .main{background:var(--focus);border-color:var(--focus);color:#2b1d00}
+#status{font-weight:700}
+#status.ok{color:var(--good)}#status.err{color:var(--bad)}
 
+footer{margin-top:28px;display:flex;justify-content:center}footer button{font-size:14px;min-height:36px;color:var(--muted)}
+.hint2{font-size:14px}
+</style></head><body>
 <div class="wrap">
-  <header style="display:flex;flex-direction:column;gap:10px">
-    <p class="brand">Wiskunde · klas 1 vmbo basis</p>
-    <h1>Oefenen rekenen</h1>
-    <p class="hello" id="hello">Kies een les.</p>
-    <div class="field"><label for="naam">Hoe heet je? (mag leeg)</label><input type="text" id="naam" maxlength="30" autocomplete="off"></div>
+  <header>
+    <div><h1>Lessenoverzicht</h1><p>Kies een les om te beginnen.</p></div>
   </header>
-
-  <nav class="list" aria-label="Lessen">
-    <a class="lesson" href="ruimtefiguren.html" data-id="ruimtefiguren">
-      <span class="art" aria-hidden="true">
-        <svg viewBox="0 0 120 100"><polygon points="20,40 70,40 70,90 20,90" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/><polygon points="20,40 70,40 94,16 44,16" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/><polygon points="70,40 70,90 94,66 94,16" fill="var(--fig)" stroke="var(--figline)" stroke-width="3" stroke-linejoin="round"/></svg>
-      </span>
-      <span class="body">
-        <h2>Ruimtefiguren en grensvlakken</h2>
-        <p>Balk, kubus, piramide, bol, cilinder en kegel. Welke vorm heeft een grensvlak?</p>
-        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
-        <span class="start">Start</span>
-      </span>
-      <span class="seen">Geopend ✓</span>
-    </a>
-
-    <a class="lesson" href="decimalen.html" data-id="decimalen">
-      <span class="art" aria-hidden="true">
-        <svg viewBox="0 0 120 100"><text x="60" y="58" text-anchor="middle" font-family="Baloo 2,Trebuchet MS,sans-serif" font-weight="700" font-size="30"><tspan fill="var(--blue)">0,91</tspan><tspan fill="var(--ink)">|</tspan><tspan fill="var(--hot)">7</tspan></text><path d="M82 70 q8 12 -6 14" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round"/><text x="60" y="94" text-anchor="middle" font-family="Baloo 2,Trebuchet MS,sans-serif" font-weight="700" font-size="14" fill="var(--blue)">+1</text></svg>
-      </span>
-      <span class="body">
-        <h2>Decimalen afronden</h2>
-        <p>Kijk naar het cijfer achter de streep. Rond af op centen en op andere plekken.</p>
-        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
-        <span class="start">Start</span>
-      </span>
-      <span class="seen">Geopend ✓</span>
-    </a>
-
-    <a class="lesson" href="uitslag.html" data-id="uitslag">
-      <span class="art" aria-hidden="true">
-        <svg viewBox="0 0 120 100"><g stroke="var(--figline)" stroke-width="2.5" stroke-linejoin="round" fill="var(--c1)"><rect x="36" y="8" width="24" height="24"/><rect x="12" y="32" width="24" height="24"/><rect x="36" y="32" width="24" height="24"/><rect x="60" y="32" width="24" height="24"/><rect x="84" y="32" width="24" height="24"/><rect x="36" y="56" width="24" height="24"/></g></svg>
-      </span>
-      <span class="body">
-        <h2>Uitslag, ribben en aanzichten</h2>
-        <p>Uitslag van kubus en balk, ribben en hoekpunten, en voor-, zij- en bovenaanzicht.</p>
-        <span class="tags"><span>± 30 minuten</span><span>Met voorleesknop</span></span>
-        <span class="start">Start</span>
-      </span>
-      <span class="seen">Geopend ✓</span>
-    </a>
-  </nav>
-
-  <p class="note">Zet je geluid aan. In elke les kun je op <b>Lees voor</b> tikken om een tekst te horen.</p>
+  <section id="settings" hidden>
+    <h2>Instellingen</h2>
+    <p>Kies bij elke les of het wiskunde of rekenen is. Gebruik de pijltjes om de volgorde te veranderen. Wat je hier verandert, bewaart deze browser. Wil je dat alle leerlingen het zien? Download dan lessen.json en zet dat bestand in GitHub.</p>
+    <div id="srows"></div>
+    <div class="bar"><button class="main" id="dl">Download lessen.json</button><button id="reset">Terug naar standaard</button><span id="status" role="status"></span></div>
+  </section>
+  <main class="cols">
+    <section class="col wiskunde"><h2>Wiskunde <small id="n-wiskunde"></small></h2><ul id="list-wiskunde"></ul></section>
+    <section class="col rekenen"><h2>Rekenen <small id="n-rekenen"></small></h2><ul id="list-rekenen"></ul></section>
+  </main>
+  <footer><button id="gear" aria-expanded="false">Instellingen (voor de docent)</button></footer>
 </div>
-
 <script>
 (function(){
-  var get=function(k){try{return localStorage.getItem(k)}catch(e){return null}};
-  var set=function(k,v){try{localStorage.setItem(k,v)}catch(e){}};
-  var inp=document.getElementById('naam'),hello=document.getElementById('hello');
-  function greet(){var n=inp.value.trim();hello.textContent=n?'Hoi '+n+'! Kies een les.':'Kies een les.'}
-  inp.value=get('rekenen-naam')||'';greet();
-  inp.addEventListener('input',function(){set('rekenen-naam',inp.value.trim());greet()});
-  document.querySelectorAll('.lesson').forEach(function(a){
-    var id=a.dataset.id;
-    if(get('rekenen-open-'+id))a.classList.add('opened');
-    a.addEventListener('click',function(){set('rekenen-open-'+id,'1')});
-  });
+  var COLS=['wiskunde','rekenen'],LABEL={wiskunde:'Wiskunde',rekenen:'Rekenen'},KEY='lessen-indeling-v1';
+  var DEFAULT={"lessons": {"ruimtefiguren": {"title": "Ruimtefiguren en grensvlakken", "note": "Balk, kubus, piramide, bol, cilinder en kegel. Welke vorm heeft een grensvlak?", "url": "ruimtefiguren.html"}, "uitslag": {"title": "Uitslag, ribben en aanzichten", "note": "Uitslag van kubus en balk, ribben en hoekpunten, en voor-, zij- en bovenaanzicht.", "url": "uitslag.html"}, "lab": {"title": "Ruimtefiguren Lab", "note": "3D-figuren draaien, uitslagen vouwen, tellen en spelletjes.", "url": "ruimtefiguren-lab.html"}, "decimalen": {"title": "Decimalen afronden", "note": "Kijk naar het cijfer achter de streep. Rond af op centen en op andere plekken.", "url": "decimalen.html"}, "lijnen": {"title": "Lijnen en hoeken", "note": "Hoeken, loodrecht, evenwijdig, diagonalen en tekenen met de geodriehoek. Uitleg en 60 vragen.", "url": "lijnen-en-hoeken.html"}, "getallen": {"title": "Getallen en getalgevoel", "note": "Getallen herkennen, getallenlijn, plaatswaarde en getalgevoel. Uitleg en 30 vragen.", "url": "rekenles-getallen.html"}, "plusmin": {"title": "Plus en min", "note": "Optellen en aftrekken tot 100. Uitleg en 30 vragen.", "url": "rekenles-plus-min.html"}, "keerdelen": {"title": "Keer en delen", "note": "Keersommen en delen. Uitleg en 30 vragen.", "url": "rekenles-keer-delen.html"}, "hoeken": {"title": "Hoeken", "note": "Hoek, hoekpunt en benen, het teken ∠, hoeken op de klok en hoeken vergelijken. Uitleg en 60 vragen.", "url": "hoeken.html"}}, "columns": {"wiskunde": ["ruimtefiguren", "uitslag", "lab", "hoeken", "lijnen"], "rekenen": ["getallen", "plusmin", "keerdelen", "decimalen"]}};
+  var state=null,base=null;
+  function $(s){return document.querySelector(s)}
+  function copy(o){return JSON.parse(JSON.stringify(o))}
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+  function norm(s){
+    var seen={},out={wiskunde:[],rekenen:[]};
+    COLS.forEach(function(c){((s.columns&&s.columns[c])||[]).forEach(function(id){if(s.lessons[id]&&!seen[id]){seen[id]=1;out[c].push(id)}})});
+    Object.keys(s.lessons).forEach(function(id){if(!seen[id])out.wiskunde.push(id)});
+    s.columns=out;return s}
+  function render(){
+    COLS.forEach(function(c){
+      var ul=$('#list-'+c);ul.textContent='';var ids=state.columns[c];
+      $('#n-'+c).textContent=ids.length+(ids.length===1?' les':' lessen');
+      if(!ids.length){ul.appendChild(el('li','empty','Nog geen lessen.'));return}
+      ids.forEach(function(id){var L=state.lessons[id],li=el('li'),a=el('a','lesson');
+        a.href=L.url;
+        a.appendChild(el('b',null,L.title));if(L.note)a.appendChild(el('span',null,L.note));a.appendChild(el('em',null,'Open les →'));
+        li.appendChild(a);ul.appendChild(li)})});
+    renderSettings();
+  }
+  function renderSettings(){
+    var box=$('#srows');box.textContent='';
+    COLS.forEach(function(c){state.columns[c].forEach(function(id,i){
+      var r=el('div','srow'),L=state.lessons[id];r.appendChild(el('b',null,L.title));
+      var seg=el('div','seg');
+      COLS.forEach(function(k){var b=el('button',k==='wiskunde'?'w':'r',LABEL[k]);b.setAttribute('aria-pressed',String(k===c));
+        b.onclick=function(){if(k!==c){state.columns[c].splice(i,1);state.columns[k].push(id);changed()}};seg.appendChild(b)});
+      r.appendChild(seg);
+      var mv=el('div','mv'),up=el('button',null,'↑'),dn=el('button',null,'↓');
+      up.setAttribute('aria-label','Hoger zetten: '+L.title);dn.setAttribute('aria-label','Lager zetten: '+L.title);
+      up.disabled=i===0;dn.disabled=i===state.columns[c].length-1;
+      up.onclick=function(){var a=state.columns[c];a.splice(i-1,0,a.splice(i,1)[0]);changed()};
+      dn.onclick=function(){var a=state.columns[c];a.splice(i+1,0,a.splice(i,1)[0]);changed()};
+      mv.appendChild(up);mv.appendChild(dn);r.appendChild(mv);box.appendChild(r)})});
+  }
+  function status(t,k){var s=$('#status');s.textContent=t;s.className=k||''}
+  function changed(){
+    try{localStorage.setItem(KEY,JSON.stringify(state.columns));status('Opgeslagen in deze browser. Download lessen.json om het voor alle leerlingen te zetten.','ok')}
+    catch(e){status('Deze browser kan het niet bewaren. Download lessen.json.','err')}
+    render()}
+  $('#reset').onclick=function(){try{localStorage.removeItem(KEY)}catch(e){}state=copy(base);render();status('Terug naar de standaard indeling.','')};
+  $('#dl').onclick=function(){
+    var out={lessons:state.lessons,columns:state.columns};
+    var blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lessen.json';document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+    status('lessen.json is gedownload. Zet dit bestand in GitHub bij de andere bestanden.','ok')};
+  $('#gear').onclick=function(){var s=$('#settings'),open=s.hidden;s.hidden=!open;$('#gear').setAttribute('aria-expanded',String(open));if(open)s.scrollIntoView({block:'start'})};
+  function start(cfg){
+    base=norm(copy(cfg));state=copy(base);
+    try{var o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&o.wiskunde&&o.rekenen){state.columns=o;norm(state)}}catch(e){}
+    render()}
+  fetch('lessen.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){if(!j.lessons)throw 0;start(j)}).catch(function(){start(DEFAULT)});
 })();
-</script>
-
-</html>
+</script></body></html>
